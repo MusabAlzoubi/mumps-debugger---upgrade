@@ -195,6 +195,16 @@ export default class MumpsDebugSession extends DebugSession {
 		})
 	}
 
+
+	protected customRequest(command: string, response: DebugProtocol.Response, args: { command?: string }): void {
+		if (command === 'mumps.rawCommand' && args?.command) {
+			this._mconnect.sendRawCommand(args.command);
+			this.sendResponse(response);
+			return;
+		}
+		super.customRequest(command, response, args);
+	}
+
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
 		const path = <string>args.source.path;
 		this._mconnect.clearBreakpoints(path);

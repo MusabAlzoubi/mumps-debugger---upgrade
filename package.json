@@ -77,6 +77,22 @@
       {
         "command": "mumps.insertRoutineHeaderTemplate",
         "title": "Insert Routine Header Template (MUMPS)"
+      },
+      {
+        "command": "mumps.zstep",
+        "title": "MUMPS: ZSTEP"
+      },
+      {
+        "command": "mumps.zcontinue",
+        "title": "MUMPS: ZCONTINUE"
+      },
+      {
+        "command": "mumps.zwrite",
+        "title": "MUMPS: ZWRITE"
+      },
+      {
+        "command": "mumps.zshow",
+        "title": "MUMPS: ZSHOW"
       }
     ],
     "debuggers": [
