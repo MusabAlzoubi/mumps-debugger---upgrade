@@ -93,6 +93,14 @@
       {
         "command": "mumps.zshow",
         "title": "MUMPS: ZSHOW"
+      },
+      {
+        "command": "mumps.zbreak",
+        "title": "MUMPS: ZBREAK..."
+      },
+      {
+        "command": "mumps.zprintAtPosition",
+        "title": "MUMPS: ZPRINT @$ZPOSITION"
       }
     ],
     "debuggers": [
@@ -227,6 +235,26 @@
         "command": "mumps.insertRoutineHeaderTemplate",
         "key": "ctrl+alt+h",
         "when": "editorLangId == mumps"
+      },
+      {
+        "command": "mumps.zstep",
+        "key": "ctrl+alt+s",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zcontinue",
+        "key": "ctrl+alt+c",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zwrite",
+        "key": "ctrl+alt+w",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zshow",
+        "key": "ctrl+alt+j",
+        "when": "inDebugMode && debugType == mumps"
       }
     ],
     "configurationDefaults": {
