@@ -16,6 +16,7 @@ import MumpsDocumenter from './mumpsDocumenter';
 import CompletionItemProvider from './mumpsCompletionItemProvider';
 import expandCompress from './mumpsCompExp';
 import MumpsDiagnosticsProvider from './mumpsDiagnosticsProvider';
+import { insertRoutineHeaderTemplate } from './mumpsTemplateCommands';
 import fs = require('fs');
 let timeout: ReturnType<typeof setTimeout> | undefined;
 const entryRef: string | undefined = "";
@@ -40,6 +41,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand("mumps.autoSpaceTab", () => { autoSpaceTab(); }),
 		vscode.commands.registerCommand("mumps.toggleExpandedCommands", () => { expandCompress(wsState) }),
 		vscode.commands.registerCommand('mumps.getEntryRef', () => { return getEntryRef() }),
+		vscode.commands.registerCommand('mumps.insertRoutineHeaderTemplate', async () => { await insertRoutineHeaderTemplate(); }),
 		vscode.languages.registerHoverProvider(MUMPS_MODE, new MumpsHoverProvider()),
 		vscode.languages.registerDefinitionProvider(MUMPS_MODE, new MumpsDefinitionProvider()),
 		vscode.languages.registerEvaluatableExpressionProvider(MUMPS_MODE, new MumpsEvalutableExpressionProvider()),

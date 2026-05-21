@@ -73,6 +73,10 @@
       {
         "command": "mumps.documentFunction",
         "title": "Creates comment for M subroutine"
+      },
+      {
+        "command": "mumps.insertRoutineHeaderTemplate",
+        "title": "Insert Routine Header Template (MUMPS)"
       }
     ],
     "debuggers": [
@@ -202,6 +206,11 @@
         "command": "mumps.autoSpaceTab",
         "when": "editorLangId == mumps && !suggestWidgetVisible",
         "key": "tab"
+      },
+      {
+        "command": "mumps.insertRoutineHeaderTemplate",
+        "key": "ctrl+alt+h",
+        "when": "editorLangId == mumps"
       }
     ],
     "configurationDefaults": {
