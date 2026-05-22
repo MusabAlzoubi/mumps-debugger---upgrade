@@ -25,3 +25,12 @@ export async function zbreak(): Promise<void> {
 export async function zprintAtPos(): Promise<void> {
 	await sendDebugCommand('ZPRINT @$ZPOSITION');
 }
+
+
+export async function zstepInto(): Promise<void> {
+	await sendDebugCommand('ZSTEP INTO');
+}
+
+export async function zstepOutOf(): Promise<void> {
+	await sendDebugCommand('ZSTEP OUTOF');
+}

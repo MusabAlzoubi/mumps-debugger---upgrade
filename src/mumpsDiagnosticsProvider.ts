@@ -84,7 +84,9 @@ export default class MumpsDiagnosticsProvider {
 				const standardsSettings = readStandardsSettings();
 				const standardsIssues = analyzeStandards(document, standardsSettings);
 				for (const issue of standardsIssues) {
-					this._diags.push(new vscode.Diagnostic(issue.range, issue.message, issue.severity));
+					const diag = new vscode.Diagnostic(issue.range, issue.message, issue.severity);
+					diag.source = issue.source;
+					this._diags.push(diag);
 				}
 			if (this._diags) {
 				collection.set(document.uri, this._diags);

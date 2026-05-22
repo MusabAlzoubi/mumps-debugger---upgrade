@@ -17,7 +17,7 @@ import CompletionItemProvider from './mumpsCompletionItemProvider';
 import expandCompress from './mumpsCompExp';
 import MumpsDiagnosticsProvider from './mumpsDiagnosticsProvider';
 import { insertRoutineHeaderTemplate } from './mumpsTemplateCommands';
-import { zbreak, zcontinue, zprintAtPos, zshow, zstep, zwrite } from './mumpsDirectDebugCommands';
+import { zbreak, zcontinue, zprintAtPos, zshow, zstep, zstepInto, zstepOutOf, zwrite } from './mumpsDirectDebugCommands';
 import fs = require('fs');
 let timeout: ReturnType<typeof setTimeout> | undefined;
 const entryRef: string | undefined = "";
@@ -49,6 +49,8 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('mumps.zshow', async () => { await zshow(); }),
 		vscode.commands.registerCommand('mumps.zbreak', async () => { await zbreak(); }),
 		vscode.commands.registerCommand('mumps.zprintAtPosition', async () => { await zprintAtPos(); }),
+		vscode.commands.registerCommand('mumps.zstepInto', async () => { await zstepInto(); }),
+		vscode.commands.registerCommand('mumps.zstepOutOf', async () => { await zstepOutOf(); }),
 		vscode.languages.registerHoverProvider(MUMPS_MODE, new MumpsHoverProvider()),
 		vscode.languages.registerDefinitionProvider(MUMPS_MODE, new MumpsDefinitionProvider()),
 		vscode.languages.registerEvaluatableExpressionProvider(MUMPS_MODE, new MumpsEvalutableExpressionProvider()),

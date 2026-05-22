@@ -101,6 +101,14 @@
       {
         "command": "mumps.zprintAtPosition",
         "title": "MUMPS: ZPRINT @$ZPOSITION"
+      },
+      {
+        "command": "mumps.zstepInto",
+        "title": "MUMPS: ZSTEP INTO"
+      },
+      {
+        "command": "mumps.zstepOutOf",
+        "title": "MUMPS: ZSTEP OUTOF"
       }
     ],
     "debuggers": [
@@ -254,6 +262,16 @@
       {
         "command": "mumps.zshow",
         "key": "ctrl+alt+j",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zstepInto",
+        "key": "ctrl+alt+i",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zstepOutOf",
+        "key": "ctrl+alt+o",
         "when": "inDebugMode && debugType == mumps"
       }
     ],
