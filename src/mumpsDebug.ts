@@ -33,6 +33,12 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/**Flag if internal Database for M-Labels should be build up */
 	buildLabelDb?: boolean;
 }
+interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
+	hostname: string;
+	port: number;
+	localRoutinesPath: string;
+	stopOnEntry?: boolean;
+}
 interface VarData {
 	name: string,
 	indexCount: number,
@@ -203,6 +209,21 @@ export default class MumpsDebugSession extends DebugSession {
 			return;
 		}
 		super.customRequest(command, response, args);
+	}
+
+
+	protected async attachRequest(response: DebugProtocol.AttachResponse, args: AttachRequestArguments) {
+		await this._configurationDone.wait(1000);
+		this._mconnect.init(args.hostname, args.port, args.localRoutinesPath).then(() => {
+			vscode.window.showInformationMessage(`Attached to MDEBUG at ${args.hostname}:${args.port}`);
+			if (args.stopOnEntry) {
+				this._mconnect.step('INTO');
+			}
+			this._mconnect.requestBreakpoints();
+			this.sendResponse(response);
+		}).catch(() => {
+			vscode.window.showErrorMessage('Attach to MDEBUG failed. Please verify host/port and listener status.');
+		});
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {

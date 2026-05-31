@@ -153,6 +153,34 @@
                 "default": 9000
               }
             }
+          },
+          "attach": {
+            "required": [
+              "hostname",
+              "port",
+              "localRoutinesPath"
+            ],
+            "properties": {
+              "hostname": {
+                "type": "string",
+                "description": "The host running MDEBUG listener",
+                "default": "localhost"
+              },
+              "port": {
+                "type": "number",
+                "description": "The listener port exposed by MDEBUG",
+                "default": 9000
+              },
+              "localRoutinesPath": {
+                "type": "string",
+                "description": "The Path to map .m Files to local Files"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after attach.",
+                "default": false
+              }
+            }
           }
         },
         "initialConfigurations": [
@@ -187,6 +215,19 @@
               "name": "Ask for Entryref",
               "program": "${command:AskForProgramName}",
               "stopOnEntry": true
+            }
+          },
+          {
+            "label": "Mumps Debug: Attach",
+            "description": "Attach to running MDEBUG listener",
+            "body": {
+              "type": "mumps",
+              "request": "attach",
+              "name": "Attach to MDEBUG",
+              "hostname": "localhost",
+              "port": 9000,
+              "localRoutinesPath": "/home/vista/EHR/r/",
+              "stopOnEntry": false
             }
           }
         ]
