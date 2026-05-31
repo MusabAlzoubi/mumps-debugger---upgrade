@@ -16,7 +16,7 @@ import MumpsDocumenter from './mumpsDocumenter';
 import CompletionItemProvider from './mumpsCompletionItemProvider';
 import expandCompress from './mumpsCompExp';
 import MumpsDiagnosticsProvider from './mumpsDiagnosticsProvider';
-import { insertRoutineHeaderTemplate } from './mumpsTemplateCommands';
+import { insertPatchChangeBlockTemplate, insertRoutineHeaderTemplate } from './mumpsTemplateCommands';
 import { sendRawDebugCommand, zbreak, zcontinue, zprintAtPos, zshow, zstep, zstepInto, zstepOutOf, zwrite } from './mumpsDirectDebugCommands';
 import fs = require('fs');
 let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -43,6 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand("mumps.toggleExpandedCommands", () => { expandCompress(wsState) }),
 		vscode.commands.registerCommand('mumps.getEntryRef', () => { return getEntryRef() }),
 		vscode.commands.registerCommand('mumps.insertRoutineHeaderTemplate', async () => { await insertRoutineHeaderTemplate(); }),
+		vscode.commands.registerCommand('mumps.insertPatchChangeBlockTemplate', async () => { await insertPatchChangeBlockTemplate(); }),
 		vscode.commands.registerCommand('mumps.zstep', async () => { await zstep(); }),
 		vscode.commands.registerCommand('mumps.zcontinue', async () => { await zcontinue(); }),
 		vscode.commands.registerCommand('mumps.zwrite', async () => { await zwrite(); }),

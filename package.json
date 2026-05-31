@@ -79,6 +79,10 @@
         "title": "Insert Routine Header Template (MUMPS)"
       },
       {
+        "command": "mumps.insertPatchChangeBlockTemplate",
+        "title": "Insert Patch Change Block Template (MUMPS)"
+      },
+      {
         "command": "mumps.zstep",
         "title": "MUMPS: ZSTEP"
       },
@@ -318,6 +322,11 @@
         "command": "mumps.zstepOutOf",
         "key": "ctrl+alt+o",
         "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.insertPatchChangeBlockTemplate",
+        "key": "ctrl+alt+p",
+        "when": "editorLangId == mumps"
       }
     ],
     "configurationDefaults": {
