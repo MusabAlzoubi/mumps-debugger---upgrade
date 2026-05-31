@@ -8,6 +8,8 @@ export interface StandardsSettings {
 	enforceRoutineHeader: boolean;
 	enforceLabelLength: boolean;
 	enforceLocalVariableNames: boolean;
+	enforceTmpGlobalSubscript: boolean;
+	enforcePercentGlobalProtection: boolean;
 	namespacePrefixes: string[];
 }
 
@@ -27,12 +29,16 @@ export function readStandardsSettings(): StandardsSettings {
 	const enforceRoutineHeader = configuration.get<boolean>('standards.enforceRoutineHeader', false) ?? false;
 	const enforceLabelLength = configuration.get<boolean>('standards.enforceLabelLength', true) ?? true;
 	const enforceLocalVariableNames = configuration.get<boolean>('standards.enforceLocalVariableNames', true) ?? true;
+	const enforceTmpGlobalSubscript = configuration.get<boolean>('standards.enforceTmpGlobalSubscript', true) ?? true;
+	const enforcePercentGlobalProtection = configuration.get<boolean>('standards.enforcePercentGlobalProtection', true) ?? true;
 	const namespacePrefixes = configuration.get<string[]>('standards.namespacePrefixes', []);
 	return {
 		profile,
 		enforceRoutineHeader,
 		enforceLabelLength,
 		enforceLocalVariableNames,
+		enforceTmpGlobalSubscript,
+		enforcePercentGlobalProtection,
 		namespacePrefixes
 	};
 }
@@ -49,7 +55,14 @@ export function analyzeStandards(document: vscode.TextDocument, settings: Standa
 		}
 	}
 	for (let i = 0; i < document.lineCount; i++) {
-		const lineInfo = parser.analyzeLine(document.lineAt(i).text);
+		const lineText = document.lineAt(i).text;
+		const lineInfo = parser.analyzeLine(lineText);
+		if (settings.enforceTmpGlobalSubscript) {
+			issues.push(...checkTmpGlobalSubscript(i, lineText));
+		}
+		if (settings.enforcePercentGlobalProtection) {
+			issues.push(...checkPercentGlobalProtection(i, lineText));
+		}
 		if (settings.enforceLabelLength) {
 			issues.push(...checkLabelLength(i, lineInfo.tokens));
 		}
@@ -133,4 +146,41 @@ function checkLocalVariableNames(line: number, tokens: LineToken[]): StandardsIs
 		}
 	}
 	return issues;
+}
+
+function checkTmpGlobalSubscript(line: number, text: string): StandardsIssue[] {
+	const issues: StandardsIssue[] = [];
+	const globalRegex = /\^TMP\s*\(/gi;
+	let match: RegExpExecArray | null;
+	while (match = globalRegex.exec(text)) {
+		const argsStart = globalRegex.lastIndex;
+		const argsText = text.slice(argsStart);
+		const trimmedArgs = argsText.trimStart();
+		const leadingWhitespace = argsText.length - trimmedArgs.length;
+		const isJobScoped = /^\$J\b/i.test(trimmedArgs) || /^"[^"]+"\s*,\s*\$J\b/i.test(trimmedArgs);
+		if (!isJobScoped) {
+			issues.push({
+				message: '^TMP usage should be scoped by $J, or by a package namespace followed by $J.',
+				severity: vscode.DiagnosticSeverity.Warning,
+				range: new vscode.Range(line, match.index, line, argsStart + leadingWhitespace),
+				source
+			});
+		}
+	}
+	return issues;
+}
+
+function checkPercentGlobalProtection(line: number, text: string): StandardsIssue[] {
+	const commandAgainstPercentGlobal = /\b(R|READ|K|KILL|S|SET|M|MERGE)\b[^;]*\^%[A-Za-z0-9%]*/i;
+	const match = commandAgainstPercentGlobal.exec(text);
+	if (!match) {
+		return [];
+	}
+	const globalPosition = text.indexOf('^%', match.index);
+	return [{
+		message: 'VistA standard disallows READ/KILL/SET/MERGE against ^% globals except Kernel exemptions.',
+		severity: vscode.DiagnosticSeverity.Warning,
+		range: new vscode.Range(line, globalPosition, line, globalPosition + 2),
+		source
+	}];
 }

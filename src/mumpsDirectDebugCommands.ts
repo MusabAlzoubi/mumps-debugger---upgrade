@@ -34,3 +34,12 @@ export async function zstepInto(): Promise<void> {
 export async function zstepOutOf(): Promise<void> {
 	await sendDebugCommand('ZSTEP OUTOF');
 }
+
+
+export async function sendRawDebugCommand(): Promise<void> {
+	const command = await vscode.window.showInputBox({ prompt: 'MUMPS/GT.M debug command (for example: ZWRITE, ZSHOW, ZPRINT @$ZPOSITION)' });
+	if (!command) {
+		return;
+	}
+	await sendDebugCommand(command);
+}

@@ -109,6 +109,10 @@
       {
         "command": "mumps.zstepOutOf",
         "title": "MUMPS: ZSTEP OUTOF"
+      },
+      {
+        "command": "mumps.sendRawDebugCommand",
+        "title": "MUMPS: Send Raw Debug Command..."
       }
     ],
     "debuggers": [
@@ -416,6 +420,16 @@
           "type": "boolean",
           "default": true,
           "description": "When a standards profile is active, warn when local variables exceed 16 characters or contain lowercase characters."
+        },
+        "mumps.standards.enforceTmpGlobalSubscript": {
+          "type": "boolean",
+          "default": true,
+          "description": "When a standards profile is active, warn when ^TMP is not scoped by $J or package namespace followed by $J."
+        },
+        "mumps.standards.enforcePercentGlobalProtection": {
+          "type": "boolean",
+          "default": true,
+          "description": "When a standards profile is active, warn on READ/KILL/SET/MERGE operations against ^% globals."
         }
       }
     }
