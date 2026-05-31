@@ -406,6 +406,16 @@
           },
           "default": [],
           "description": "Allowed routine namespace prefixes for standards checks."
+        },
+        "mumps.standards.enforceLabelLength": {
+          "type": "boolean",
+          "default": true,
+          "description": "When a standards profile is active, warn when entry point labels exceed 8 characters."
+        },
+        "mumps.standards.enforceLocalVariableNames": {
+          "type": "boolean",
+          "default": true,
+          "description": "When a standards profile is active, warn when local variables exceed 16 characters or contain lowercase characters."
         }
       }
     }

@@ -81,13 +81,13 @@ export default class MumpsDiagnosticsProvider {
 			for (let i = 0; i < this._subroutines.length; i++) {
 				this.analyzeSubroutine(this._subroutines[i]);
 			}
-				const standardsSettings = readStandardsSettings();
-				const standardsIssues = analyzeStandards(document, standardsSettings);
-				for (const issue of standardsIssues) {
-					const diag = new vscode.Diagnostic(issue.range, issue.message, issue.severity);
-					diag.source = issue.source;
-					this._diags.push(diag);
-				}
+			const standardsSettings = readStandardsSettings();
+			const standardsIssues = analyzeStandards(document, standardsSettings);
+			for (const issue of standardsIssues) {
+				const diag = new vscode.Diagnostic(issue.range, issue.message, issue.severity);
+				diag.source = issue.source;
+				this._diags.push(diag);
+			}
 			if (this._diags) {
 				collection.set(document.uri, this._diags);
 			}
