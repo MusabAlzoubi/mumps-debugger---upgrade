@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import { readFileSync } from 'fs';
 import * as getIpAddress from 'local-ipv4-address';
 import * as portfinder from 'portfinder';
+import { updateDirectDebugPosition } from './mumpsDirectDebugCommands';
 const MUMPSDIAGNOSTICS = vscode.languages.createDiagnosticCollection("mumps");
 /**
  * This interface describes the mumps-debug specific launch attributes
@@ -95,6 +96,9 @@ export default class MumpsDebugSession extends DebugSession {
 		});
 		this._mconnect.on('breakpointValidated', (bp: MumpsBreakpoint) => {
 			this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
+		});
+		this._mconnect.on('positionChanged', (position: string) => {
+			updateDirectDebugPosition(position);
 		});
 
 		this._mconnect.on('end', () => {
@@ -201,13 +205,13 @@ export default class MumpsDebugSession extends DebugSession {
 	}
 
 
-	protected customRequest(command: string, response: DebugProtocol.Response, args: { command?: string }): void {
+	protected async customRequest(command: string, response: DebugProtocol.Response, args: { command?: string }): Promise<void> {
 		if (command === 'mumps.rawCommand' && args?.command) {
-			this._mconnect.sendRawCommand(args.command);
+			const output = await this._mconnect.sendRawCommand(args.command);
 			(response as DebugProtocol.Response & { body?: { accepted: boolean; command: string; message: string } }).body = {
 				accepted: true,
 				command: args.command,
-				message: `MDEBUG accepted command: ${args.command}`
+				message: output
 			};
 			this.sendResponse(response);
 			return;

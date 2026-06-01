@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 const outputChannel = vscode.window.createOutputChannel('MUMPS Debug');
 const zbreakHistory: string[] = [];
+let positionStatusItem: vscode.StatusBarItem | undefined;
 
 interface RawCommandResponse {
 	accepted?: boolean;
@@ -14,6 +15,7 @@ interface DirectDebugControl {
 	tooltip: string;
 	command: string;
 	priority: number;
+	isPosition?: boolean;
 }
 
 const directDebugControls: DirectDebugControl[] = [
@@ -26,7 +28,7 @@ const directDebugControls: DirectDebugControl[] = [
 	{ text: '$(symbol-variable) ZWR', tooltip: 'MUMPS: ZWRITE variables', command: 'mumps.zwrite', priority: 194 },
 	{ text: '$(list-tree) ZSH', tooltip: 'MUMPS: ZSHOW stack/environment', command: 'mumps.zshow', priority: 193 },
 	{ text: '$(settings-gear) $ZSTEP', tooltip: 'MUMPS: Configure $ZSTEP line printing', command: 'mumps.configureZstepLinePrinting', priority: 192 },
-	{ text: '$(location) $ZPOS', tooltip: 'MUMPS: Show $ZPOSITION', command: 'mumps.showZposition', priority: 191 }
+	{ text: '$(location) $ZPOS', tooltip: 'MUMPS: Show $ZPOSITION', command: 'mumps.showZposition', priority: 191, isPosition: true }
 ];
 
 function shouldShowOutput(): boolean {
@@ -178,6 +180,9 @@ export function registerDirectDebugControls(context: vscode.ExtensionContext): v
 		item.text = control.text;
 		item.tooltip = control.tooltip;
 		item.command = control.command;
+		if (control.isPosition) {
+			positionStatusItem = item;
+		}
 		context.subscriptions.push(item);
 		return item;
 	});
@@ -197,4 +202,13 @@ export function registerDirectDebugControls(context: vscode.ExtensionContext): v
 		vscode.debug.onDidChangeActiveDebugSession(updateVisibility)
 	);
 	updateVisibility();
+}
+
+
+export function updateDirectDebugPosition(position: string): void {
+	if (!positionStatusItem) {
+		return;
+	}
+	positionStatusItem.text = `$(location) ${position || '$ZPOS'}`;
+	positionStatusItem.tooltip = position ? `MUMPS current $ZPOSITION: ${position}` : 'MUMPS: Show $ZPOSITION';
 }
