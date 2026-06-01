@@ -159,26 +159,26 @@ ZBREAK TEST+3^KJOTEST
 
 ### المرحلة 1: إكمال Direct Commands الأساسية
 
-- [ ] إضافة command: `MUMPS: Configure ZSTEP Line Printing`.
-- [ ] إرسال الأمر: `SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"`.
-- [ ] إضافة command: `MUMPS: Show $ZPOSITION`.
-- [ ] إضافة command: `MUMPS: ZPRINT...` مع input target اختياري.
-- [ ] تحسين `ZBREAK...` بإضافة validation لـ `TAG+N^ROUTINE`.
-- [ ] إضافة keybindings اختيارية للأوامر الجديدة.
+- [x] إضافة command: `MUMPS: Configure ZSTEP Line Printing`.
+- [x] إرسال الأمر: `SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"`.
+- [x] إضافة command: `MUMPS: Show $ZPOSITION`.
+- [x] إضافة command: `MUMPS: ZPRINT...` مع input target اختياري.
+- [x] تحسين `ZBREAK...` بإضافة validation لـ `TAG+N^ROUTINE` وحفظ آخر targets داخل الجلسة.
+- [x] إضافة keybindings اختيارية للأوامر الجديدة.
 
-**نسبة الإنجاز الحالية لهذه المرحلة:** 60% لأن معظم أوامر `Z*` الأساسية موجودة، لكن `$ZSTEP`, `$ZPOSITION`, و`ZPRINT...` غير مكتملة.
+**نسبة الإنجاز الحالية لهذه المرحلة:** 90% بعد إضافة أوامر `$ZSTEP`, `$ZPOSITION`, و`ZPRINT...` وتحسين `ZBREAK`. المتبقي هو اختبارها على GT.M/MDEBUG فعلي.
 
 ### المرحلة 2: Output Channel وتجربة شبيهة Xdebug
 
-- [ ] إنشاء Output Channel باسم `MUMPS Debug`.
-- [ ] طباعة كل أمر مرسل إلى Output Channel.
+- [x] إنشاء Output Channel باسم `MUMPS Debug`.
+- [x] طباعة كل أمر مرسل إلى Output Channel.
 - [ ] طباعة نتائج `ZWRITE`, `ZSHOW`, `ZPRINT` في Output Channel.
-- [ ] إضافة timestamps للأوامر.
+- [x] إضافة timestamps للأوامر.
 - [ ] فصل output حسب نوع الأمر.
-- [ ] إظهار رسالة واضحة عند عدم وجود active MUMPS debug session.
-- [ ] إضافة setting مثل `mumps.debug.showOutputOnCommand`.
+- [x] إظهار رسالة واضحة عند عدم وجود active MUMPS debug session.
+- [x] إضافة setting مثل `mumps.debug.showOutputOnCommand`.
 
-**نسبة الإنجاز الحالية لهذه المرحلة:** 15% لأن الأوامر ترسل حاليًا، لكن output المنظم غير موجود.
+**نسبة الإنجاز الحالية لهذه المرحلة:** 55% لأن Output Channel صار يسجل الأوامر والقبول والأخطاء، لكن نتائج `ZWRITE`, `ZSHOW`, و`ZPRINT` لا تزال تحتاج capture فعلي من MDEBUG protocol.
 
 ### المرحلة 3: ربط أفضل مع VS Code Debug UX
 
@@ -219,16 +219,16 @@ ZBREAK TEST+3^KJOTEST
 
 | المحور | نسبة الإنجاز الحالية | السبب |
 |---|---:|---|
-| أوامر `Z*` الأساسية | 70% | معظم commands موجودة في الإضافة. |
-| `$ZPOSITION` و`$ZSTEP` | 25% | يوجد استخدام جزئي لـ `ZPRINT @$ZPOSITION`، ولا توجد إدارة واضحة لـ `$ZSTEP`. |
-| Output Channel | 10–15% | لا توجد قناة output منظمة بعد. |
-| تجربة شبيهة Xdebug | 35% | launch/debug adapter موجود، لكن mapping والfeedback يحتاجان تحسينًا. |
-| MDEBUG protocol للأوامر الخام | 10% | الإرسال موجود، لكن الردود غير structured. |
-| التوثيق والاختبارات | 35% | توجد وثائق عامة، وهذه الوثيقة تضيف خطة مخصصة. |
+| أوامر `Z*` الأساسية | 80% | معظم commands موجودة، وتمت إضافة `ZPRINT...` وتحسين `ZBREAK`. |
+| `$ZPOSITION` و`$ZSTEP` | 60% | تمت إضافة commands لضبط `$ZSTEP` وعرض `$ZPOSITION`، والمتبقي capture/عرض القيمة فعليًا من MDEBUG. |
+| Output Channel | 55% | تمت إضافة قناة `MUMPS Debug` لتسجيل الأوامر والقبول والأخطاء، والمتبقي التقاط نتائج MDEBUG الفعلية. |
+| تجربة شبيهة Xdebug | 50% | mapping الأوامر تحسن مع keybindings وcommands إضافية، والمتبقي toolbar/status/capture أعمق. |
+| MDEBUG protocol للأوامر الخام | 20% | custom request يرجع acknowledgement من Debug Adapter، لكن لا يلتقط output الحقيقي من MDEBUG بعد. |
+| التوثيق والاختبارات | 45% | تم تحديث الخطة لتتبع التنفيذ، لكن smoke test على GT.M/MDEBUG لا يزال مطلوبًا. |
 
-**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **40%**.
+**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **55%** بعد تنفيذ أول دفعة من المرحلة 1 وجزء من المرحلة 2.
 
-بعد تنفيذ المرحلتين 1 و2 فقط، يمكن أن ترتفع النسبة إلى حوالي **65%** وتصبح التجربة قابلة للاختبار الداخلي بشكل جيد.
+بعد التقاط نتائج `ZWRITE`, `ZSHOW`, و`ZPRINT` فعليًا من MDEBUG protocol يمكن أن ترتفع النسبة إلى حوالي **70%** وتصبح التجربة قابلة للاختبار الداخلي بشكل جيد.
 
 ---
 
@@ -274,3 +274,19 @@ ZBREAK TEST+3^KJOTEST
 6. اختبار السيناريو يدويًا على GT.M/MDEBUG.
 
 بهذا تصبح التجربة أقرب لما يراه المستخدم في Xdebug/PHP، حتى لو بقيت بعض التفاصيل التقنية مختلفة بسبب اختلاف GT.M/MUMPS عن PHP/Xdebug.
+
+---
+
+## 11) تحديث تنفيذ 2026-06-01
+
+تم البدء بتنفيذ الخطة عبر:
+
+- إضافة أوامر `MUMPS: Configure $ZSTEP Line Printing`, `MUMPS: Show $ZPOSITION`, و`MUMPS: ZPRINT...`.
+- إضافة Output Channel باسم `MUMPS Debug` يسجل الأوامر المرسلة والقبول أو الأخطاء.
+- تحسين `ZBREAK...` بإضافة تحقق أولي من صيغة `TAG+OFFSET^ROUTINE` وحفظ آخر خمسة targets داخل الجلسة.
+- إضافة setting باسم `mumps.debug.showOutputOnCommand` للتحكم في إظهار قناة المخرجات عند إرسال أوامر Direct Debug.
+- إضافة acknowledgement من Debug Adapter عند استقبال `mumps.rawCommand`.
+
+**النسبة بعد هذا التنفيذ:** 55% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
+
+**المتبقي الأقرب:** التقاط نتائج MDEBUG الحقيقية لأوامر `ZWRITE`, `ZSHOW`, و`ZPRINT` بدل الاكتفاء بتسجيل الأمر والقبول.

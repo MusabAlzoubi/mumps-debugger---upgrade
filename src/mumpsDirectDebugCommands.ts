@@ -1,45 +1,153 @@
 import * as vscode from 'vscode';
 
-async function sendDebugCommand(command: string): Promise<void> {
-	const session = vscode.debug.activeDebugSession;
-	if (!session || session.type !== 'mumps') {
-		vscode.window.showWarningMessage('No active MUMPS debug session.');
-		return;
-	}
-	await session.customRequest('mumps.rawCommand', { command });
+const outputChannel = vscode.window.createOutputChannel('MUMPS Debug');
+const zbreakHistory: string[] = [];
+
+interface RawCommandResponse {
+	accepted?: boolean;
+	command?: string;
+	message?: string;
 }
 
-export async function zstep(): Promise<void> { await sendDebugCommand('ZSTEP'); }
-export async function zcontinue(): Promise<void> { await sendDebugCommand('ZCONTINUE'); }
-export async function zwrite(): Promise<void> { await sendDebugCommand('ZWRITE'); }
-export async function zshow(): Promise<void> { await sendDebugCommand('ZSHOW'); }
+function shouldShowOutput(): boolean {
+	return vscode.workspace.getConfiguration('mumps').get<boolean>('debug.showOutputOnCommand', true) ?? true;
+}
+
+function appendOutput(message: string, forceShow = false): void {
+	outputChannel.appendLine(message);
+	if (forceShow || shouldShowOutput()) {
+		outputChannel.show(true);
+	}
+}
+
+function logCommand(command: string, label?: string): void {
+	const timestamp = new Date().toISOString();
+	appendOutput(`[${timestamp}] ${label ? label + ': ' : ''}${command}`);
+}
+
+function isLikelyEntryReference(target: string): boolean {
+	return /^[A-Za-z%][A-Za-z0-9%]*(\+\d+)?\^[A-Za-z%][A-Za-z0-9%]*$/.test(target.trim());
+}
+
+function rememberZbreakTarget(target: string): void {
+	const existingIndex = zbreakHistory.indexOf(target);
+	if (existingIndex >= 0) {
+		zbreakHistory.splice(existingIndex, 1);
+	}
+	zbreakHistory.unshift(target);
+	while (zbreakHistory.length > 5) {
+		zbreakHistory.pop();
+	}
+}
+
+async function pickZbreakTarget(): Promise<string | undefined> {
+	if (zbreakHistory.length === 0) {
+		return vscode.window.showInputBox({
+			prompt: 'ZBREAK target (for example: TEST+3^KJOTEST)',
+			placeHolder: 'TAG+OFFSET^ROUTINE'
+		});
+	}
+	const selected = await vscode.window.showQuickPick([
+		{ label: '$(edit) Enter a new ZBREAK target', target: undefined },
+		...zbreakHistory.map(target => ({ label: target, target }))
+	], { placeHolder: 'Select a recent ZBREAK target or enter a new one' });
+	if (!selected) {
+		return undefined;
+	}
+	if (selected.target) {
+		return selected.target;
+	}
+	return vscode.window.showInputBox({
+		prompt: 'ZBREAK target (for example: TEST+3^KJOTEST)',
+		placeHolder: 'TAG+OFFSET^ROUTINE'
+	});
+}
+
+async function sendDebugCommand(command: string, label?: string): Promise<RawCommandResponse | undefined> {
+	const session = vscode.debug.activeDebugSession;
+	if (!session || session.type !== 'mumps') {
+		const message = 'No active MUMPS debug session.';
+		appendOutput(`[warning] ${message}`, true);
+		vscode.window.showWarningMessage(message);
+		return undefined;
+	}
+	logCommand(command, label);
+	try {
+		const response = await session.customRequest('mumps.rawCommand', { command }) as RawCommandResponse | undefined;
+		if (response?.message) {
+			appendOutput(response.message);
+		} else {
+			appendOutput(`MDEBUG accepted command: ${command}`);
+		}
+		return response;
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		appendOutput(`[error] ${message}`, true);
+		vscode.window.showErrorMessage(`MUMPS debug command failed: ${message}`);
+		return undefined;
+	}
+}
+
+export async function zstep(): Promise<void> { await sendDebugCommand('ZSTEP', 'Step'); }
+export async function zcontinue(): Promise<void> { await sendDebugCommand('ZCONTINUE', 'Continue'); }
+export async function zwrite(): Promise<void> { await sendDebugCommand('ZWRITE', 'Inspect variables'); }
+export async function zshow(): Promise<void> { await sendDebugCommand('ZSHOW', 'Show stack/environment'); }
 
 export async function zbreak(): Promise<void> {
-	const target = await vscode.window.showInputBox({ prompt: "ZBREAK target (e.g. TEST+3^KJOTEST)" });
+	const target = (await pickZbreakTarget())?.trim();
 	if (!target) {
 		return;
 	}
-	await sendDebugCommand(`ZBREAK ${target}`);
+	if (!isLikelyEntryReference(target)) {
+		const confirmation = await vscode.window.showWarningMessage(
+			`'${target}' does not look like TAG+OFFSET^ROUTINE. Send it anyway?`,
+			{ modal: false },
+			'Send Anyway'
+		);
+		if (confirmation !== 'Send Anyway') {
+			return;
+		}
+	}
+	rememberZbreakTarget(target);
+	await sendDebugCommand(`ZBREAK ${target}`, 'Set breakpoint');
 }
 
 export async function zprintAtPos(): Promise<void> {
-	await sendDebugCommand('ZPRINT @$ZPOSITION');
+	await sendDebugCommand('ZPRINT @$ZPOSITION', 'Print current line');
 }
 
+export async function zprint(): Promise<void> {
+	const target = await vscode.window.showInputBox({
+		prompt: 'ZPRINT target. Leave the default to print the current $ZPOSITION.',
+		value: '@$ZPOSITION',
+		placeHolder: '@$ZPOSITION or TAG+OFFSET^ROUTINE'
+	});
+	if (!target) {
+		return;
+	}
+	await sendDebugCommand(`ZPRINT ${target.trim()}`, 'Print code');
+}
 
 export async function zstepInto(): Promise<void> {
-	await sendDebugCommand('ZSTEP INTO');
+	await sendDebugCommand('ZSTEP INTO', 'Step into');
 }
 
 export async function zstepOutOf(): Promise<void> {
-	await sendDebugCommand('ZSTEP OUTOF');
+	await sendDebugCommand('ZSTEP OUTOF', 'Step out');
 }
 
+export async function configureZstepLinePrinting(): Promise<void> {
+	await sendDebugCommand('SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"', 'Configure $ZSTEP line printing');
+}
+
+export async function showZposition(): Promise<void> {
+	await sendDebugCommand('WRITE $ZPOSITION', 'Show $ZPOSITION');
+}
 
 export async function sendRawDebugCommand(): Promise<void> {
 	const command = await vscode.window.showInputBox({ prompt: 'MUMPS/GT.M debug command (for example: ZWRITE, ZSHOW, ZPRINT @$ZPOSITION)' });
 	if (!command) {
 		return;
 	}
-	await sendDebugCommand(command);
+	await sendDebugCommand(command, 'Raw command');
 }
