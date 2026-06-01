@@ -19,6 +19,7 @@ interface DirectDebugControl {
 }
 
 const directDebugControls: DirectDebugControl[] = [
+	{ text: '$(debug-alt) MDBG', tooltip: 'MUMPS: Direct Debug Setup ($ZSTEP + $ZPOSITION + current line)', command: 'mumps.directDebugSetup', priority: 201 },
 	{ text: '$(debug-continue) ZC', tooltip: 'MUMPS: ZCONTINUE', command: 'mumps.zcontinue', priority: 200 },
 	{ text: '$(debug-step-over) ZST', tooltip: 'MUMPS: ZSTEP', command: 'mumps.zstep', priority: 199 },
 	{ text: '$(debug-step-into) INTO', tooltip: 'MUMPS: ZSTEP INTO', command: 'mumps.zstepInto', priority: 198 },
@@ -52,10 +53,15 @@ function directCommandTimeoutMs(): number {
 }
 
 function appendCommandResult(command: string, label: string | undefined, message: string): void {
-	appendOutput(`--- ${label || 'MUMPS Direct Command'} result ---`);
+	const normalizedMessage = (message || 'MDEBUG command completed with no output.').trim();
+	const isError = normalizedMessage.includes('***DIRECTERR');
+	appendOutput(`--- ${isError ? 'ERROR: ' : ''}${label || 'MUMPS Direct Command'} result ---`);
 	appendOutput(`Command: ${command}`);
-	appendOutput((message || 'MDEBUG command completed with no output.').trim());
+	appendOutput(normalizedMessage);
 	appendOutput('--- end result ---');
+	if (isError) {
+		vscode.window.showWarningMessage(`MUMPS direct command returned an error. See the MUMPS Debug output channel.`);
+	}
 }
 
 function isLikelyEntryReference(target: string): boolean {
@@ -173,6 +179,14 @@ export async function configureZstepLinePrinting(): Promise<void> {
 	await sendDebugCommand('SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"', 'Configure $ZSTEP line printing');
 }
 
+export async function directDebugSetup(): Promise<void> {
+	appendOutput('=== MUMPS Direct Debug Setup ===', true);
+	await sendDebugCommand('SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"', 'Configure $ZSTEP line printing');
+	await sendDebugCommand('WRITE $ZPOSITION', 'Show $ZPOSITION');
+	await sendDebugCommand('ZPRINT @$ZPOSITION', 'Print current line');
+	appendOutput('=== End MUMPS Direct Debug Setup ===');
+}
+
 export async function showZposition(): Promise<void> {
 	await sendDebugCommand('WRITE $ZPOSITION', 'Show $ZPOSITION');
 }
@@ -205,6 +219,9 @@ export function registerDirectDebugControls(context: vscode.ExtensionContext): v
 			} else {
 				item.hide();
 			}
+		}
+		if (!isMumpsDebugSession) {
+			updateDirectDebugPosition('');
 		}
 	};
 	context.subscriptions.push(

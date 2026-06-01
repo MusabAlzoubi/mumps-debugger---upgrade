@@ -304,11 +304,11 @@ npm run publish
 | التوثيق والمعمارية | 80% | مراجعة نهائية وربط docs في README الرئيسي |
 | Standards Diagnostics | 45% | قواعد أكثر + quick fixes + tests |
 | Templates | 60% | قوالب RPC/FileMan/Entry Point + إعدادات company/version |
-| Direct Debug Commands | 85% | smoke test مع MDEBUG + polish لتنسيق output |
+| Direct Debug Commands | 88% | smoke test مع MDEBUG + polish لتنسيق output |
 | Attach Mode | 35% | اختبار فعلي مع listener + تحسين lifecycle |
 | Packaging/Marketplace | 40% | تغيير الهوية + LICENSE/NOTICE + نشر VSIX تجريبي |
 
-**النسبة الإجمالية التقريبية الآن: 64% من MVP داخلي قابل للاختبار بعد إضافة queue/timeout وتنسيق أوضح لنتائج أوامر Direct Debug.**
+**النسبة الإجمالية التقريبية الآن: 65% من MVP داخلي قابل للاختبار بعد إضافة زر Direct Debug Setup لتجهيز `$ZSTEP` و`$ZPOSITION` بسرعة.**
 
 للوصول إلى مرحلة اختبار داخلية جيدة نحتاج تقريبًا:
 

@@ -125,6 +125,10 @@
         "title": "MUMPS: Show $ZPOSITION"
       },
       {
+        "command": "mumps.directDebugSetup",
+        "title": "MUMPS: Direct Debug Setup"
+      },
+      {
         "command": "mumps.sendRawDebugCommand",
         "title": "MUMPS: Send Raw Debug Command..."
       }
@@ -349,6 +353,11 @@
         "when": "inDebugMode && debugType == mumps"
       },
       {
+        "command": "mumps.directDebugSetup",
+        "key": "ctrl+alt+shift+d",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
         "command": "mumps.insertPatchChangeBlockTemplate",
         "key": "ctrl+alt+p",
         "when": "editorLangId == mumps"
@@ -480,6 +489,11 @@
     },
     "menus": {
       "debug/toolBar": [
+        {
+          "command": "mumps.directDebugSetup",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@0"
+        },
         {
           "command": "mumps.zbreak",
           "when": "inDebugMode && debugType == mumps",
