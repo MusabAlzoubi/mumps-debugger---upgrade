@@ -1,12 +1,11 @@
 {
-  "name": "Mumps-Debugger",
-  "displayName": "Mumps Debugging",
+  "name": "vista-mumps-toolkit",
+  "displayName": "VistA MUMPS Toolkit",
   "version": "1.0.2",
-  "publisher": "RashedAlkhatib",
-  "description": "Debugger for Mumps (M) ,GT.M",
+  "publisher": "MusabAlzoubi",
+  "description": "VistA-focused MUMPS/GT.M debugger, standards diagnostics, templates, and direct debug commands for VS Code.",
   "author": {
-    "name": "Rashed Alkhatib",
-    "email": "alkhatib.rashed@gmail.com"
+    "name": "Musab Alzoubi"
   },
   "keywords": [
     "mumps",
@@ -17,7 +16,6 @@
   "engines": {
     "vscode": "^1.77.0"
   },
-  "icon": "images/mumps-debug-icon.png",
   "categories": [
     "Debuggers",
     "Programming Languages",
@@ -26,10 +24,10 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/RashedAlkhatib/mumps-debugger.git"
+    "url": "https://github.com/MusabAlzoubi/mumps-debugger---upgrade.git"
   },
   "bugs": {
-    "url": "https://github.com/RashedAlkhatib/mumps-debugger/issues"
+    "url": "https://github.com/MusabAlzoubi/mumps-debugger---upgrade/issues"
   },
   "scripts": {
     "prepare": "tsc -p ./src",

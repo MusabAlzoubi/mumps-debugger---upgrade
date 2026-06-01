@@ -7,3 +7,12 @@ out/tests/**/*
 **/*.js.map
 node_modules
 MumpsDebug-Rashed-tutorial.webm
+
+# Binary and generated artifacts are intentionally excluded from VSIX packages.
+*.vsix
+**/*.webm
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.ico

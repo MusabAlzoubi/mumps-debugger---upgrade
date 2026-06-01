@@ -17,7 +17,7 @@
    - `description`
    - `repository.url`
    - `bugs.url`
-   - `icon` إذا أردت علامة مختلفة
+   - `icon` لاحقًا إذا أردت علامة مختلفة؛ لا تضف ملفات binary داخل PR إذا كانت المنصة لا تدعمها.
 4. **حدّث التوثيق** ليذكر أن النسخة مبنية على المشروع الأصلي مع توضيح التعديلات الجديدة.
 
 ---
@@ -233,7 +233,28 @@ ZBREAK TEST+3^KJOTEST
 
 ### 5.1 تعديل هوية الإضافة
 
-عدّل `package.json`:
+تم اختيار هوية مقترحة جديدة لا تتعارض مع الإضافة الأصلية:
+
+```json
+{
+  "name": "vista-mumps-toolkit",
+  "displayName": "VistA MUMPS Toolkit",
+  "publisher": "MusabAlzoubi",
+  "description": "VistA-focused MUMPS/GT.M debugger, standards diagnostics, templates, and direct debug commands for VS Code.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MusabAlzoubi/mumps-debugger---upgrade.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MusabAlzoubi/mumps-debugger---upgrade/issues"
+  }
+}
+```
+
+> تم ضبط `publisher` وروابط GitHub على حسابك `MusabAlzoubi`. تأكد فقط أن Publisher ID نفسه موجود في Marketplace قبل النشر.
+> ملاحظة مهمة حول الملفات الثنائية: تم حذف أيقونة PNG الجديدة من هذا التغيير لأن المنصة لا تدعم binary diffs. عند النشر النهائي يمكنك إضافة الأيقونة يدويًا أو في PR منفصل يدعم binary، وملف VSIX الناتج يبقى غير متتبع لأن `.gitignore` يحتوي `*.vsix`.
+
+مثال عام للتعديل في `package.json`:
 
 ```json
 {
@@ -309,3 +330,15 @@ npm run publish
 - [ ] تثبيت VSIX محليًا واختبار commands.
 - [ ] اختبار launch/attach على بيئة GT.M.
 - [ ] نشر نسخة pre-release أو private/internal أولًا.
+
+---
+
+## 8) سياسة الملفات الثنائية Binary Files
+
+بما أن بعض منصات المراجعة أو الرفع لا تدعم عرض binary diffs، اتبع السياسة التالية:
+
+- لا تضف ملفات binary جديدة داخل PR العادي مثل: `.png`, `.webm`, `.vsix`, `.ico`, `.jpg`.
+- ملف VSIX الناتج من `npm run package` لا يجب رفعه إلى GitHub؛ هو مستبعد عبر `.gitignore` و`.vscodeignore`.
+- الأصول الثنائية القديمة الموجودة في المشروع الأصلي لا تحتاج تعديلًا ضمن هذا المسار، لكن لا تضف أصولًا ثنائية جديدة إلا في مسار منفصل يدعم binary.
+- إذا احتجت أيقونة Marketplace لاحقًا، أضفها في PR منفصل أو ارفعها يدويًا عند النشر النهائي حسب متطلبات Marketplace.
+- `.vscodeignore` يستبعد ملفات الصور والفيديو وملفات VSIX من حزمة الإضافة لتخفيف الحزمة وتجنب إدخال artifacts غير ضرورية.
