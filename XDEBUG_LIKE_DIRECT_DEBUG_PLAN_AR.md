@@ -1,0 +1,276 @@
+# خطة Direct Debug شبيهة Xdebug لأوامر GT.M/MUMPS
+
+> الهدف من هذه الوثيقة هو تحويل أوامر Direct Mode في GT.M/MUMPS إلى تجربة استخدام داخل VS Code تشبه تجربة Xdebug في PHP: أزرار واضحة في شريط الديبغ، أوامر Step/Continue/Stop، ونافذة Output تعرض نتيجة أوامر مثل `ZWRITE`, `ZSHOW`, و`ZPRINT`.
+
+---
+
+## 1) الهدف العام
+
+نريد أن يشعر المطور أن جلسة MUMPS debug تعمل مثل جلسة Xdebug في PHP:
+
+- يبدأ المطور جلسة debug من launch الموجود حاليًا.
+- تظهر أدوات التحكم المعتادة في VS Code Debug Toolbar.
+- كل زر أو command في VS Code يقابله أمر GT.M/MUMPS واضح.
+- تظهر نتائج أوامر Direct Mode في Output Channel مخصص بدل أن تضيع داخل terminal أو socket.
+- يمكن للمطور الانتقال بين الأسطر والدوال والروتينات باستخدام أوامر مألوفة مثل Step Into وStep Out وContinue.
+
+هذه الخطة لا تستبدل launch الحالي؛ بل تبني فوقه. launch الحالي يعتبر جاهزًا كنقطة بدء، والعمل المطلوب يتركز على تحسين UX وربط أوامر GT.M/MUMPS بتجربة VS Code.
+
+---
+
+## 2) نطاق الأوامر المطلوبة
+
+الوثيقة المرجعية تركز على أوامر Direct Mode التالية:
+
+| أمر GT.M/MUMPS | الاختصار | المعنى العملي داخل VS Code |
+|---|---|---|
+| `ZBREAK` | `ZB` | إنشاء breakpoint مؤقت أو مباشر على `TAG+OFFSET^ROUTINE`. |
+| `ZCONTINUE` | `ZC` | متابعة التنفيذ بعد التوقف. |
+| `ZWRITE` | `ZWR` | عرض local variables وقيمها الحالية. |
+| `ZPRINT` | `ZP` | طباعة أسطر الكود حسب argument أو حسب `$ZPOSITION`. |
+| `ZSHOW` | `ZSH` | عرض حالة stack وبيئة GT.M. |
+| `ZSTEP` | `ZST` | تنفيذ السطر الحالي والانتقال للسطر التالي. |
+| `ZSTEP INTO` | — | الدخول داخل routine أو `DO` المستدعى من السطر الحالي. |
+| `ZSTEP OUTOF` | — | الخروج من المستوى الحالي والعودة للمستوى الأعلى في stack. |
+
+كما يجب دعم special variables التالية:
+
+| المتغير | المعنى | الاستخدام المطلوب |
+|---|---|---|
+| `$ZPOSITION` / `$ZPOS` | يمثل موقع التنفيذ الحالي مثل `TAG+LINE^ROUTINE`. | استخدامه مع `ZPRINT @$ZPOSITION` وعرضه في status/output. |
+| `$ZSTEP` / `$ZST` | يحدد ماذا يفعل `ZSTEP` عند الاستدعاء. | توفير command لضبطه على طباعة السطر الحالي أثناء step. |
+
+---
+
+## 3) تشبيه Xdebug داخل VS Code
+
+الصورة المرجعية لشريط Xdebug/PHP تعرض أزرارًا مثل:
+
+- Pause
+- Step Over
+- Step Into
+- Step Out
+- Restart
+- Stop
+
+في MUMPS/GT.M نريد mapping قريبًا كالتالي:
+
+| زر/سلوك Xdebug | أمر GT.M/MUMPS المقترح | الحالة الحالية | المطلوب |
+|---|---|---:|---|
+| Continue / Resume | `ZCONTINUE` | موجود كـ command | ربط أوضح مع toolbar/command UX وإظهار نتيجة التنفيذ. |
+| Step Over | `ZSTEP` أو `ZSTEP OVER` عند دعمه | موجود `ZSTEP` | توحيد السلوك وتوثيق الفرق بين step عادي وstep over. |
+| Step Into | `ZSTEP INTO` | موجود كـ command | تحسين feedback وإظهار الموقع الجديد. |
+| Step Out | `ZSTEP OUTOF` | موجود كـ command | تحسين feedback وإظهار stack/location. |
+| Breakpoint | `ZBREAK TAG+N^ROUTINE` | موجود عبر input | تحسين input validation وحفظ آخر targets. |
+| Inspect Variables | `ZWRITE` | موجود كـ command | عرض النتائج في Output Channel أو Variables view. |
+| Show Stack/Environment | `ZSHOW` | موجود كـ command | تنسيق النتائج داخل Output Channel. |
+| Print Current Line | `ZPRINT @$ZPOSITION` | موجود كـ command | إظهاره تلقائيًا بعد step أو عبر زر/command مستقل. |
+| Configure Step Printing | `SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"` | غير مكتمل | إضافة command مخصص لضبط `$ZSTEP`. |
+| Stop | Debug Adapter `disconnect` + MDEBUG reset | موجود جزئيًا | تنظيف lifecycle والتأكد من إيقاف terminal/socket بشكل آمن. |
+
+> ملاحظة: VS Code Debug Toolbar لا يسمح دائمًا بإضافة أزرار مخصصة بنفس شكل Xdebug لكل extension، لكن يمكن الاقتراب من التجربة عبر Debug Adapter requests القياسية، Command Palette، keybindings، Status Bar، وDebug/Output views.
+
+---
+
+## 4) تجربة المستخدم المطلوبة
+
+### 4.1 بدء الجلسة
+
+1. يفتح المطور ملف MUMPS.
+2. يشغل launch الجاهز من VS Code.
+3. الإضافة تبدأ MDEBUG أو تتصل به حسب الإعداد الحالي.
+4. تظهر رسالة واضحة أن جلسة MUMPS Debug جاهزة.
+5. يتم إنشاء Output Channel باسم مثل: `MUMPS Debug`.
+
+### 4.2 ضبط تجربة Step مثل Xdebug
+
+بعد بدء الجلسة، يستطيع المطور تنفيذ command:
+
+```mumps
+SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"
+```
+
+المطلوب داخل VS Code:
+
+- Command باسم: `MUMPS: Configure ZSTEP Line Printing`.
+- عند تنفيذه، ترسل الإضافة أمر `SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"` إلى MDEBUG/GT.M.
+- تظهر رسالة في Output Channel تؤكد ضبط `$ZSTEP`.
+
+### 4.3 وضع Breakpoint مباشر
+
+يستطيع المطور تنفيذ:
+
+```mumps
+ZBREAK TEST+3^KJOTEST
+```
+
+المطلوب داخل VS Code:
+
+- Command باسم: `MUMPS: ZBREAK...`.
+- Input box يقبل `TAG+OFFSET^ROUTINE`.
+- Validation بسيط للصيغة.
+- حفظ آخر 5 breakpoints كـ quick pick لاحقًا.
+
+### 4.4 التنقل أثناء التوقف
+
+عند التوقف على breakpoint، يستخدم المطور:
+
+| Action | Command |
+|---|---|
+| التالي | `ZSTEP` |
+| دخول routine مستدعى | `ZSTEP INTO` |
+| الخروج من routine الحالي | `ZSTEP OUTOF` |
+| متابعة التنفيذ | `ZCONTINUE` |
+
+المطلوب:
+
+- كل command يعرض في Output Channel:
+  - الأمر المرسل.
+  - الوقت.
+  - `$ZPOSITION` بعد التنفيذ إن أمكن.
+  - نتيجة `ZPRINT @$ZPOSITION` إن أمكن.
+
+### 4.5 فحص المتغيرات والبيئة
+
+| Action | Command | المطلوب |
+|---|---|---|
+| عرض المتغيرات | `ZWRITE` | إرسال النتائج إلى Output Channel، ولاحقًا تحويلها إلى Variables tree. |
+| عرض stack/environment | `ZSHOW` | تنسيق output في sections قابلة للقراءة. |
+| طباعة موقع التنفيذ | `ZPRINT @$ZPOSITION` | عرض السطر الحالي بعد كل step أو عند الطلب. |
+
+---
+
+## 5) الملفات المتوقع تعديلها
+
+| الملف | نوع التعديل |
+|---|---|
+| `package.json` | إضافة commands/keybindings/settings إذا لزم. |
+| `src/extension.ts` | تسجيل commands الجديدة وربطها بالـ subscriptions. |
+| `src/mumpsDirectDebugCommands.ts` | توسيع direct commands، إضافة `$ZSTEP`, `$ZPOSITION`, output channel. |
+| `src/mumpsDebug.ts` | تحسين `customRequest`, وربما إرجاع output أو events من MDEBUG. |
+| `src/mumpsConnect.ts` | دعم إرسال الأمر مع انتظار/تجميع الرد إن أمكن. |
+| `src/mumpsConfigurationProvider.ts` | إضافة إعدادات اختيارية لتفعيل direct-mode UX عند launch. |
+| ملف جديد محتمل `src/mumpsDebugOutput.ts` | عزل Output Channel formatting. |
+| ملف جديد محتمل `src/mumpsDebugCommandHistory.ts` | حفظ آخر أوامر/breakpoints. |
+
+---
+
+## 6) TODO List تفصيلية
+
+### المرحلة 1: إكمال Direct Commands الأساسية
+
+- [ ] إضافة command: `MUMPS: Configure ZSTEP Line Printing`.
+- [ ] إرسال الأمر: `SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"`.
+- [ ] إضافة command: `MUMPS: Show $ZPOSITION`.
+- [ ] إضافة command: `MUMPS: ZPRINT...` مع input target اختياري.
+- [ ] تحسين `ZBREAK...` بإضافة validation لـ `TAG+N^ROUTINE`.
+- [ ] إضافة keybindings اختيارية للأوامر الجديدة.
+
+**نسبة الإنجاز الحالية لهذه المرحلة:** 60% لأن معظم أوامر `Z*` الأساسية موجودة، لكن `$ZSTEP`, `$ZPOSITION`, و`ZPRINT...` غير مكتملة.
+
+### المرحلة 2: Output Channel وتجربة شبيهة Xdebug
+
+- [ ] إنشاء Output Channel باسم `MUMPS Debug`.
+- [ ] طباعة كل أمر مرسل إلى Output Channel.
+- [ ] طباعة نتائج `ZWRITE`, `ZSHOW`, `ZPRINT` في Output Channel.
+- [ ] إضافة timestamps للأوامر.
+- [ ] فصل output حسب نوع الأمر.
+- [ ] إظهار رسالة واضحة عند عدم وجود active MUMPS debug session.
+- [ ] إضافة setting مثل `mumps.debug.showOutputOnCommand`.
+
+**نسبة الإنجاز الحالية لهذه المرحلة:** 15% لأن الأوامر ترسل حاليًا، لكن output المنظم غير موجود.
+
+### المرحلة 3: ربط أفضل مع VS Code Debug UX
+
+- [ ] التأكد أن أزرار VS Code القياسية ترسل requests المناسبة حيث أمكن.
+- [ ] مطابقة Step Into مع `ZSTEP INTO`.
+- [ ] مطابقة Step Out مع `ZSTEP OUTOF`.
+- [ ] مطابقة Continue مع `ZCONTINUE`.
+- [ ] دراسة Step Over وهل يكون `ZSTEP` أو `ZSTEP OVER` حسب دعم GT.M/MDEBUG.
+- [ ] إظهار `$ZPOSITION` في status bar بعد كل step.
+- [ ] إضافة command سريع لإعادة طباعة السطر الحالي.
+
+**نسبة الإنجاز الحالية لهذه المرحلة:** 35% لأن Debug Adapter موجود، وبعض step methods موجودة، لكن direct-mode toolbar parity غير مكتمل.
+
+### المرحلة 4: تحسين MDEBUG protocol/output
+
+- [ ] تعديل `mumpsConnect` ليعيد response للأوامر الخام بدل `writeln` فقط.
+- [ ] إضافة request/response correlation للأوامر المباشرة إن أمكن.
+- [ ] التقاط output حتى نهاية prompt أو marker واضح.
+- [ ] تحديث MDEBUG.m إذا احتاج protocol marker مخصص.
+- [ ] إضافة timeout ورسائل خطأ مفهومة.
+
+**نسبة الإنجاز الحالية لهذه المرحلة:** 10% لأن `sendRawCommand` موجود، لكنه لا يعيد output structured.
+
+### المرحلة 5: اختبارات وتوثيق
+
+- [ ] إضافة دليل استخدام Direct Debug شبيه Xdebug داخل README أو ملف مستقل.
+- [ ] إضافة سيناريو اختبار: `ZBREAK` ثم `$ZSTEP` ثم `DO TAG^ROUTINE` ثم `ZSTEP`.
+- [ ] إضافة fixtures أو mock tests للأوامر التي لا تحتاج GT.M.
+- [ ] إضافة smoke test يدوي على GT.M/MDEBUG حقيقي.
+- [ ] توثيق الفرق بين MDEBUG launch وDirect Mode commands.
+- [ ] توثيق known limitations.
+
+**نسبة الإنجاز الحالية لهذه المرحلة:** 30% لأن الدوكس العامة موجودة، لكن دليل Direct Debug الشبيه بـ Xdebug غير مكتمل قبل هذه الوثيقة.
+
+---
+
+## 7) النسبة الإجمالية المقترحة
+
+| المحور | نسبة الإنجاز الحالية | السبب |
+|---|---:|---|
+| أوامر `Z*` الأساسية | 70% | معظم commands موجودة في الإضافة. |
+| `$ZPOSITION` و`$ZSTEP` | 25% | يوجد استخدام جزئي لـ `ZPRINT @$ZPOSITION`، ولا توجد إدارة واضحة لـ `$ZSTEP`. |
+| Output Channel | 10–15% | لا توجد قناة output منظمة بعد. |
+| تجربة شبيهة Xdebug | 35% | launch/debug adapter موجود، لكن mapping والfeedback يحتاجان تحسينًا. |
+| MDEBUG protocol للأوامر الخام | 10% | الإرسال موجود، لكن الردود غير structured. |
+| التوثيق والاختبارات | 35% | توجد وثائق عامة، وهذه الوثيقة تضيف خطة مخصصة. |
+
+**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **40%**.
+
+بعد تنفيذ المرحلتين 1 و2 فقط، يمكن أن ترتفع النسبة إلى حوالي **65%** وتصبح التجربة قابلة للاختبار الداخلي بشكل جيد.
+
+---
+
+## 8) معيار القبول MVP
+
+نعتبر MVP لهذا المسار مكتملًا عندما يتحقق التالي:
+
+- [ ] تشغيل launch الحالي بدون كسر السلوك الموجود.
+- [ ] تنفيذ `ZBREAK`, `ZCONTINUE`, `ZWRITE`, `ZSHOW`, `ZSTEP`, `ZSTEP INTO`, `ZSTEP OUTOF` من VS Code.
+- [ ] تنفيذ `ZPRINT @$ZPOSITION` من VS Code.
+- [ ] تنفيذ command لضبط `$ZSTEP`.
+- [ ] ظهور نتائج `ZWRITE`, `ZSHOW`, و`ZPRINT` في Output Channel.
+- [ ] عرض `$ZPOSITION` بعد step أو عند الطلب.
+- [ ] توثيق workflow كامل يشبه Xdebug:
+  1. Start Debug
+  2. Set Breakpoint
+  3. Configure `$ZSTEP`
+  4. Step Into/Out/Continue
+  5. Inspect Variables
+  6. Stop
+
+---
+
+## 9) ملاحظات أمان وتشغيل
+
+- لا يجب إرسال أوامر raw خطرة دون توضيح للمستخدم.
+- يجب تمييز أوامر القراءة مثل `ZWRITE`, `ZSHOW`, `ZPRINT` عن أوامر قد تغير التنفيذ.
+- يجب عدم تنفيذ auto-fix أو تغييرات على الكود أثناء debugging.
+- يجب التعامل بحذر مع بيئات production VistA/GT.M.
+- يفضل أن تكون تجربة Direct Mode مفعلة فقط أثناء active debug session من نوع `mumps`.
+
+---
+
+## 10) توصية التنفيذ التالية
+
+أقصر مسار لإظهار قيمة واضحة للمستخدم:
+
+1. بناء `MUMPS Debug` Output Channel.
+2. توسيع `sendDebugCommand` ليطبع الأمر والنتيجة.
+3. إضافة command لضبط `$ZSTEP`.
+4. إضافة command لعرض `$ZPOSITION`.
+5. تحسين `ZBREAK` و`ZPRINT` بمدخلات أوضح.
+6. اختبار السيناريو يدويًا على GT.M/MDEBUG.
+
+بهذا تصبح التجربة أقرب لما يراه المستخدم في Xdebug/PHP، حتى لو بقيت بعض التفاصيل التقنية مختلفة بسبب اختلاف GT.M/MUMPS عن PHP/Xdebug.

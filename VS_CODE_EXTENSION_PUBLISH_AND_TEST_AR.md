@@ -2,6 +2,8 @@
 
 > هذا الملف يشرح عمليًا كيف تجهّز هذا الريبو للنشر كإضافة VS Code باسمك، وكيف تختبر التحديثات الحالية: الستاندرد، القوالب، أوامر الديبغ المباشر، وميزة attach.
 
+> لخطة تفصيلية تجعل أوامر Direct Debug (`ZBREAK`, `ZSTEP`, `ZWRITE`, `$ZPOSITION`, `$ZSTEP`) أقرب لتجربة Xdebug في PHP، راجع: [XDEBUG_LIKE_DIRECT_DEBUG_PLAN_AR.md](./XDEBUG_LIKE_DIRECT_DEBUG_PLAN_AR.md).
+
 ---
 
 ## 1) قبل النشر باسمك
