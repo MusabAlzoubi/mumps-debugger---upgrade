@@ -24,6 +24,19 @@ export default class MumpsConfigurationProvider implements vscode.DebugConfigura
 			}
 		}
 
+		if (config.request === 'attach') {
+			if (!config.hostname) {
+				config.hostname = 'localhost';
+			}
+			if (!config.port) {
+				config.port = 9000;
+			}
+			if (!config.localRoutinesPath) {
+				return vscode.window.showInformationMessage("Please set localRoutinesPath for attach").then(() => undefined);
+			}
+			return config;
+		}
+
 		if (!config.program) {
 			return vscode.window.showInformationMessage("Cannot find a program to debug").then(() => {
 				return undefined;	// abort launch

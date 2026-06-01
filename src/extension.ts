@@ -16,6 +16,8 @@ import MumpsDocumenter from './mumpsDocumenter';
 import CompletionItemProvider from './mumpsCompletionItemProvider';
 import expandCompress from './mumpsCompExp';
 import MumpsDiagnosticsProvider from './mumpsDiagnosticsProvider';
+import { insertPatchChangeBlockTemplate, insertRoutineHeaderTemplate } from './mumpsTemplateCommands';
+import { sendRawDebugCommand, zbreak, zcontinue, zprintAtPos, zshow, zstep, zstepInto, zstepOutOf, zwrite } from './mumpsDirectDebugCommands';
 import fs = require('fs');
 let timeout: ReturnType<typeof setTimeout> | undefined;
 const entryRef: string | undefined = "";
@@ -40,6 +42,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand("mumps.autoSpaceTab", () => { autoSpaceTab(); }),
 		vscode.commands.registerCommand("mumps.toggleExpandedCommands", () => { expandCompress(wsState) }),
 		vscode.commands.registerCommand('mumps.getEntryRef', () => { return getEntryRef() }),
+		vscode.commands.registerCommand('mumps.insertRoutineHeaderTemplate', async () => { await insertRoutineHeaderTemplate(); }),
+		vscode.commands.registerCommand('mumps.insertPatchChangeBlockTemplate', async () => { await insertPatchChangeBlockTemplate(); }),
+		vscode.commands.registerCommand('mumps.zstep', async () => { await zstep(); }),
+		vscode.commands.registerCommand('mumps.zcontinue', async () => { await zcontinue(); }),
+		vscode.commands.registerCommand('mumps.zwrite', async () => { await zwrite(); }),
+		vscode.commands.registerCommand('mumps.zshow', async () => { await zshow(); }),
+		vscode.commands.registerCommand('mumps.zbreak', async () => { await zbreak(); }),
+		vscode.commands.registerCommand('mumps.zprintAtPosition', async () => { await zprintAtPos(); }),
+		vscode.commands.registerCommand('mumps.zstepInto', async () => { await zstepInto(); }),
+		vscode.commands.registerCommand('mumps.zstepOutOf', async () => { await zstepOutOf(); }),
+		vscode.commands.registerCommand('mumps.sendRawDebugCommand', async () => { await sendRawDebugCommand(); }),
 		vscode.languages.registerHoverProvider(MUMPS_MODE, new MumpsHoverProvider()),
 		vscode.languages.registerDefinitionProvider(MUMPS_MODE, new MumpsDefinitionProvider()),
 		vscode.languages.registerEvaluatableExpressionProvider(MUMPS_MODE, new MumpsEvalutableExpressionProvider()),

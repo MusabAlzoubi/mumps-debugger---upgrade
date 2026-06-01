@@ -273,6 +273,10 @@ export class MumpsConnect extends EventEmitter {
 	public continue(): void {
 		this.writeln("CONTINUE");
 	}
+
+	public sendRawCommand(command: string): void {
+		this.writeln(command);
+	}
 	public disconnect(): void {
 		this.writeln("RESET");
 		this._socket.end();

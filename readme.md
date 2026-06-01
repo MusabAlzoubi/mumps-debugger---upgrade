@@ -41,3 +41,8 @@ A possible `launch.json` could look like this:
     }
   ]
 }
+```
+
+## Development, Testing, and Publishing
+
+Arabic guide for publishing this repository as a VS Code extension and testing the current updates: [VS_CODE_EXTENSION_PUBLISH_AND_TEST_AR.md](./VS_CODE_EXTENSION_PUBLISH_AND_TEST_AR.md)

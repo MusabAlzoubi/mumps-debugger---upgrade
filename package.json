@@ -1,277 +1,444 @@
 {
-	"name": "Mumps-Debugger",
-	"displayName": "Mumps Debugging",
-	"version": "1.0.2",
-	"publisher": "RashedAlkhatib",
-	"description": "Debugger for Mumps (M) ,GT.M",
-	"author": {
-		"name": "Rashed Alkhatib",
-		"email": "alkhatib.rashed@gmail.com"
-	},
-	"keywords": [
-		"mumps",
-		"gt.m",
-		"yottadb",
-		"debug"
-	],
-	"engines": {
-		"vscode": "^1.77.0"
-	},
-	"icon": "images/mumps-debug-icon.png",
-	"categories": [
-		"Debuggers",
-		"Programming Languages",
-		"Formatters"
-	],
-	"private": true,
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/RashedAlkhatib/mumps-debugger.git"
-	},
-	"bugs": {
-		"url": "https://github.com/RashedAlkhatib/mumps-debugger/issues"
-	},
-	"scripts": {
-		"prepare": "tsc -p ./src",
-		"compile": "tsc -p ./src",
-		"eslint": "npx eslint ./src/**/*.ts",
-		"ts-loader": "^6.2.2",
-		"watch": "tsc -w -p ./src",
-		"build": "webpack --mode production",
-		"package": "webpack --mode production && vsce package",
-		"publish": "vsce publish",
-		"vscode:prepare": "webpack --mode production",
-		"webpack": "webpack --mode development",
-		"webpack-dev": "webpack --mode development --watch"
-	},
-	"dependencies": {
-		"@vscode/debugadapter": "1.59.0",
-		"await-notify": "1.0.1",
-		"local-ipv4-address": "^0.0.2",
-		"portfinder": "^1.0.32",
-		"ts-loader": "^9.4.2"
-	},
-	"devDependencies": {
-		"@types/node": "^18.16.0",
-		"@types/vscode": "^1.77.0",
-		"@typescript-eslint/eslint-plugin": "^5.59.0",
-		"@typescript-eslint/parser": "^5.59.0",
-		"@vscode/vsce": "^2.19.0",
-		"emcellent": "0.0.5",
-		"eslint": "^8.39.0",
-		"typescript": "^5.0.4",
-		"webpack": "^5.88.2",
-		"webpack-cli": "^5.1.4"
-	},
-	"main": "./dist/extension",
-	"contributes": {
-		"commands": [
-			{
-				"command": "mumps.toggleExpandedCommands",
-				"title": "Toggles between Short- and Longversion of M Commands"
-			},
-			{
-				"command": "mumps.documentFunction",
-				"title": "Creates comment for M subroutine"
-			}
-		],
-		"debuggers": [
-			{
-				"type": "mumps",
-				"label": "Mumps Debugger",
-				"program": "./dist/extension",
-				"runtime": "node",
-				"languages": [
-					"mumps"
-				],
-				"configurationAttributes": {
-					"launch": {
-						"required": [
-							"program",
-							"hostname",
-							"localRoutinesPath"
-						],
-						"properties": {
-							"program": {
-								"type": "string",
-								"description": "Absolute path to a text file.",
-								"default": "${workspaceFolder}/${command:mumps.getEntryRef}"
-							},
-							"stopOnEntry": {
-								"type": "boolean",
-								"description": "Automatically stop after launch.",
-								"default": true
-							},
-							"hostname": {
-								"type": "string",
-								"description": "The Host which runs MDEBUG",
-								"default": "localhost"
-							},
-							"localRoutinesPath": {
-								"type": "string",
-								"description": "The Path to map .m Files to local Files"
-							},
-							"port": {
-								"type": "number",
-								"description": "The Communication-Port to MDEBUG",
-								"default": 9000
-							}
-						}
-					}
-				},
-				"initialConfigurations": [
-					{
-						"type": "mumps",
-						"request": "launch",
-						"name": "Active File",
-						"program": "${file}",
-						"localRoutinesPath": "/home/vista/EHR/r/",
-						"stopOnEntry": true
-					}
-				],
-				"configurationSnippets": [
-					{
-						"label": "Mumps Debug: Launch",
-						"description": "Launch and debug active File",
-						"body": {
-							"type": "mumps",
-							"request": "launch",
-							"name": "Active File",
-							"program": "${file}",
-							"localRoutinesPath": "/home/vista/EHR/r/",
-							"stopOnEntry": true
-						}
-					},
-					{
-						"label": "Mumps Debug: Launch",
-						"description": "Start at individual Entry-Ref.",
-						"body": {
-							"type": "mumps",
-							"request": "launch",
-							"name": "Ask for Entryref",
-							"program": "${command:AskForProgramName}",
-							"stopOnEntry": true
-						}
-					}
-				]
-			}
-		],
-		"variables": {
-			"AskForProgramName": "extension.mumps-debug.getProgramName"
-		},
-		"languages": [
-			{
-				"id": "mumps",
-				"aliases": [
-					"MUMPS",
-					"mumps"
-				],
-				"extensions": [
-					".int",
-					".m",
-					".mps",
-					".zwr"
-				],
-				"configuration": "./language-configuration.json"
-			}
-		],
-		"grammars": [
-			{
-				"language": "mumps",
-				"scopeName": "source.mumps",
-				"path": "./syntaxes/mumps.tmLanguage"
-			}
-		],
-		"keybindings": [
-			{
-				"command": "mumps.documentFunction",
-				"key": "ctrl+d",
-				"when": "editorLangId == mumps"
-			},
-			{
-				"command": "mumps.toggleExpandedCommands",
-				"key": "ctrl+e",
-				"when": "editorLangId == mumps"
-			},
-			{
-				"command": "mumps.autoSpaceEnter",
-				"when": "editorLangId == mumps && editorTextFocus",
-				"key": "enter"
-			},
-			{
-				"command": "mumps.autoSpaceTab",
-				"when": "editorLangId == mumps && !suggestWidgetVisible",
-				"key": "tab"
-			}
-		],
-		"configurationDefaults": {
-			"[mumps]": {
-				"editor.insertSpaces": false,
-				"editor.formatOnSave": false
-			}
-		},
-		"breakpoints": [
-			{
-				"language": "mumps"
-			}
-		],
-		"semanticTokenScopes": [
-			{
-				"language": "mumps",
-				"scopes": {
-					"global": [
-						"variable.other.constant"
-					],
-					"local": [
-						"variable.language.local"
-					],
-					"entryref": [
-						"entity.name.type.class"
-					],
-					"number": [
-						"constant.numeric"
-					],
-					"ifunction": [
-						"support.function.mumps"
-					],
-					"exfunction": [
-						"support.variable.property"
-					],
-					"operator": [
-						"keyword.operator"
-					],
-					"string": [
-						"string.quoted.double"
-					],
-					"sysvariable": [
-						"variable.language.local"
-					],
-					"keyword": [
-						"keyword.control"
-					],
-					"nonMfunction": [
-						"support.function.user"
-					],
-					"comment": [
-						"comment.line.mumps"
-					]
-				}
-			}
-		],
-		"configuration": {
-			"title": "mumps-debug",
-			"properties": {
-				"mumps.variablesToBeIgnoredAtNewCheck": {
-					"type": "string",
-					"default": "",
-					"description": "Variables (REGEX) separate by comma that can be ignored at subroutine check"
-				},
-				"mumps.enableVariableCheck": {
-					"type": "boolean",
-					"default": true,
-					"description": "Check if Variable are NEWed in subroutines"
-				}
-			}
-		}
-	}
+  "name": "vista-mumps-toolkit",
+  "displayName": "VistA MUMPS Toolkit",
+  "version": "1.0.2",
+  "publisher": "MusabAlzoubi",
+  "description": "VistA-focused MUMPS/GT.M debugger, standards diagnostics, templates, and direct debug commands for VS Code.",
+  "author": {
+    "name": "Musab Alzoubi"
+  },
+  "keywords": [
+    "mumps",
+    "gt.m",
+    "yottadb",
+    "debug"
+  ],
+  "engines": {
+    "vscode": "^1.77.0"
+  },
+  "categories": [
+    "Debuggers",
+    "Programming Languages",
+    "Formatters"
+  ],
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MusabAlzoubi/mumps-debugger---upgrade.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MusabAlzoubi/mumps-debugger---upgrade/issues"
+  },
+  "scripts": {
+    "prepare": "tsc -p ./src",
+    "compile": "tsc -p ./src",
+    "eslint": "npx eslint ./src/**/*.ts",
+    "ts-loader": "^6.2.2",
+    "watch": "tsc -w -p ./src",
+    "build": "webpack --mode production",
+    "package": "webpack --mode production && vsce package",
+    "publish": "vsce publish",
+    "vscode:prepare": "webpack --mode production",
+    "webpack": "webpack --mode development",
+    "webpack-dev": "webpack --mode development --watch"
+  },
+  "dependencies": {
+    "@vscode/debugadapter": "1.59.0",
+    "await-notify": "1.0.1",
+    "local-ipv4-address": "^0.0.2",
+    "portfinder": "^1.0.32",
+    "ts-loader": "^9.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.0",
+    "@types/vscode": "^1.77.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.0",
+    "@typescript-eslint/parser": "^5.59.0",
+    "@vscode/vsce": "^2.19.0",
+    "emcellent": "0.0.5",
+    "eslint": "^8.39.0",
+    "typescript": "^5.0.4",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "main": "./dist/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "mumps.toggleExpandedCommands",
+        "title": "Toggles between Short- and Longversion of M Commands"
+      },
+      {
+        "command": "mumps.documentFunction",
+        "title": "Creates comment for M subroutine"
+      },
+      {
+        "command": "mumps.insertRoutineHeaderTemplate",
+        "title": "Insert Routine Header Template (MUMPS)"
+      },
+      {
+        "command": "mumps.insertPatchChangeBlockTemplate",
+        "title": "Insert Patch Change Block Template (MUMPS)"
+      },
+      {
+        "command": "mumps.zstep",
+        "title": "MUMPS: ZSTEP"
+      },
+      {
+        "command": "mumps.zcontinue",
+        "title": "MUMPS: ZCONTINUE"
+      },
+      {
+        "command": "mumps.zwrite",
+        "title": "MUMPS: ZWRITE"
+      },
+      {
+        "command": "mumps.zshow",
+        "title": "MUMPS: ZSHOW"
+      },
+      {
+        "command": "mumps.zbreak",
+        "title": "MUMPS: ZBREAK..."
+      },
+      {
+        "command": "mumps.zprintAtPosition",
+        "title": "MUMPS: ZPRINT @$ZPOSITION"
+      },
+      {
+        "command": "mumps.zstepInto",
+        "title": "MUMPS: ZSTEP INTO"
+      },
+      {
+        "command": "mumps.zstepOutOf",
+        "title": "MUMPS: ZSTEP OUTOF"
+      },
+      {
+        "command": "mumps.sendRawDebugCommand",
+        "title": "MUMPS: Send Raw Debug Command..."
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "mumps",
+        "label": "Mumps Debugger",
+        "program": "./dist/extension",
+        "runtime": "node",
+        "languages": [
+          "mumps"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program",
+              "hostname",
+              "localRoutinesPath"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceFolder}/${command:mumps.getEntryRef}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after launch.",
+                "default": true
+              },
+              "hostname": {
+                "type": "string",
+                "description": "The Host which runs MDEBUG",
+                "default": "localhost"
+              },
+              "localRoutinesPath": {
+                "type": "string",
+                "description": "The Path to map .m Files to local Files"
+              },
+              "port": {
+                "type": "number",
+                "description": "The Communication-Port to MDEBUG",
+                "default": 9000
+              }
+            }
+          },
+          "attach": {
+            "required": [
+              "hostname",
+              "port",
+              "localRoutinesPath"
+            ],
+            "properties": {
+              "hostname": {
+                "type": "string",
+                "description": "The host running MDEBUG listener",
+                "default": "localhost"
+              },
+              "port": {
+                "type": "number",
+                "description": "The listener port exposed by MDEBUG",
+                "default": 9000
+              },
+              "localRoutinesPath": {
+                "type": "string",
+                "description": "The Path to map .m Files to local Files"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after attach.",
+                "default": false
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "mumps",
+            "request": "launch",
+            "name": "Active File",
+            "program": "${file}",
+            "localRoutinesPath": "/home/vista/EHR/r/",
+            "stopOnEntry": true
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Mumps Debug: Launch",
+            "description": "Launch and debug active File",
+            "body": {
+              "type": "mumps",
+              "request": "launch",
+              "name": "Active File",
+              "program": "${file}",
+              "localRoutinesPath": "/home/vista/EHR/r/",
+              "stopOnEntry": true
+            }
+          },
+          {
+            "label": "Mumps Debug: Launch",
+            "description": "Start at individual Entry-Ref.",
+            "body": {
+              "type": "mumps",
+              "request": "launch",
+              "name": "Ask for Entryref",
+              "program": "${command:AskForProgramName}",
+              "stopOnEntry": true
+            }
+          },
+          {
+            "label": "Mumps Debug: Attach",
+            "description": "Attach to running MDEBUG listener",
+            "body": {
+              "type": "mumps",
+              "request": "attach",
+              "name": "Attach to MDEBUG",
+              "hostname": "localhost",
+              "port": 9000,
+              "localRoutinesPath": "/home/vista/EHR/r/",
+              "stopOnEntry": false
+            }
+          }
+        ]
+      }
+    ],
+    "variables": {
+      "AskForProgramName": "extension.mumps-debug.getProgramName"
+    },
+    "languages": [
+      {
+        "id": "mumps",
+        "aliases": [
+          "MUMPS",
+          "mumps"
+        ],
+        "extensions": [
+          ".int",
+          ".m",
+          ".mps",
+          ".zwr"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mumps",
+        "scopeName": "source.mumps",
+        "path": "./syntaxes/mumps.tmLanguage"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "mumps.documentFunction",
+        "key": "ctrl+d",
+        "when": "editorLangId == mumps"
+      },
+      {
+        "command": "mumps.toggleExpandedCommands",
+        "key": "ctrl+e",
+        "when": "editorLangId == mumps"
+      },
+      {
+        "command": "mumps.autoSpaceEnter",
+        "when": "editorLangId == mumps && editorTextFocus",
+        "key": "enter"
+      },
+      {
+        "command": "mumps.autoSpaceTab",
+        "when": "editorLangId == mumps && !suggestWidgetVisible",
+        "key": "tab"
+      },
+      {
+        "command": "mumps.insertRoutineHeaderTemplate",
+        "key": "ctrl+alt+h",
+        "when": "editorLangId == mumps"
+      },
+      {
+        "command": "mumps.zstep",
+        "key": "ctrl+alt+s",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zcontinue",
+        "key": "ctrl+alt+c",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zwrite",
+        "key": "ctrl+alt+w",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zshow",
+        "key": "ctrl+alt+j",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zstepInto",
+        "key": "ctrl+alt+i",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.zstepOutOf",
+        "key": "ctrl+alt+o",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.insertPatchChangeBlockTemplate",
+        "key": "ctrl+alt+p",
+        "when": "editorLangId == mumps"
+      }
+    ],
+    "configurationDefaults": {
+      "[mumps]": {
+        "editor.insertSpaces": false,
+        "editor.formatOnSave": false
+      }
+    },
+    "breakpoints": [
+      {
+        "language": "mumps"
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "mumps",
+        "scopes": {
+          "global": [
+            "variable.other.constant"
+          ],
+          "local": [
+            "variable.language.local"
+          ],
+          "entryref": [
+            "entity.name.type.class"
+          ],
+          "number": [
+            "constant.numeric"
+          ],
+          "ifunction": [
+            "support.function.mumps"
+          ],
+          "exfunction": [
+            "support.variable.property"
+          ],
+          "operator": [
+            "keyword.operator"
+          ],
+          "string": [
+            "string.quoted.double"
+          ],
+          "sysvariable": [
+            "variable.language.local"
+          ],
+          "keyword": [
+            "keyword.control"
+          ],
+          "nonMfunction": [
+            "support.function.user"
+          ],
+          "comment": [
+            "comment.line.mumps"
+          ]
+        }
+      }
+    ],
+    "configuration": {
+      "title": "mumps-debug",
+      "properties": {
+        "mumps.variablesToBeIgnoredAtNewCheck": {
+          "type": "string",
+          "default": "",
+          "description": "Variables (REGEX) separate by comma that can be ignored at subroutine check"
+        },
+        "mumps.enableVariableCheck": {
+          "type": "boolean",
+          "default": true,
+          "description": "Check if Variable are NEWed in subroutines"
+        },
+        "mumps.standards.profile": {
+          "type": "string",
+          "default": "off",
+          "enum": [
+            "off",
+            "vista",
+            "ujo",
+            "custom"
+          ],
+          "description": "Standards profile used by diagnostics and templates."
+        },
+        "mumps.standards.enforceRoutineHeader": {
+          "type": "boolean",
+          "default": false,
+          "description": "When enabled, check routine header metadata format."
+        },
+        "mumps.standards.namespacePrefixes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Allowed routine namespace prefixes for standards checks."
+        },
+        "mumps.standards.enforceLabelLength": {
+          "type": "boolean",
+          "default": true,
+          "description": "When a standards profile is active, warn when entry point labels exceed 8 characters."
+        },
+        "mumps.standards.enforceLocalVariableNames": {
+          "type": "boolean",
+          "default": true,
+          "description": "When a standards profile is active, warn when local variables exceed 16 characters or contain lowercase characters."
+        },
+        "mumps.standards.enforceTmpGlobalSubscript": {
+          "type": "boolean",
+          "default": true,
+          "description": "When a standards profile is active, warn when ^TMP is not scoped by $J or package namespace followed by $J."
+        },
+        "mumps.standards.enforcePercentGlobalProtection": {
+          "type": "boolean",
+          "default": true,
+          "description": "When a standards profile is active, warn on READ/KILL/SET/MERGE operations against ^% globals."
+        }
+      }
+    }
+  }
 }
