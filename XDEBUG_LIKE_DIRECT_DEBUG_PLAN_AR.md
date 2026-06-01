@@ -68,7 +68,7 @@
 | Configure Step Printing | `SET $ZSTEP="ZPRINT @$ZPOSITION BREAK"` | غير مكتمل | إضافة command مخصص لضبط `$ZSTEP`. |
 | Stop | Debug Adapter `disconnect` + MDEBUG reset | موجود جزئيًا | تنظيف lifecycle والتأكد من إيقاف terminal/socket بشكل آمن. |
 
-> ملاحظة: VS Code Debug Toolbar لا يسمح دائمًا بإضافة أزرار مخصصة بنفس شكل Xdebug لكل extension، لكن يمكن الاقتراب من التجربة عبر Debug Adapter requests القياسية، Command Palette، keybindings، Status Bar، وDebug/Output views.
+> ملاحظة تنفيذية: تم تقليل الاعتماد على Command Palette بإضافة أزرار Status Bar تظهر تلقائيًا أثناء جلسة MUMPS debug، وإضافة مساهمات في `debug/toolBar` لأوامر MUMPS المباشرة. تبقى Command Palette كمسار احتياطي فقط.
 
 ---
 
@@ -182,15 +182,15 @@ ZBREAK TEST+3^KJOTEST
 
 ### المرحلة 3: ربط أفضل مع VS Code Debug UX
 
-- [ ] التأكد أن أزرار VS Code القياسية ترسل requests المناسبة حيث أمكن.
-- [ ] مطابقة Step Into مع `ZSTEP INTO`.
-- [ ] مطابقة Step Out مع `ZSTEP OUTOF`.
-- [ ] مطابقة Continue مع `ZCONTINUE`.
+- [x] إضافة أزرار Status Bar تظهر أثناء جلسة MUMPS debug لتقليل الاعتماد على Command Palette.
+- [x] توفير زر Status Bar مباشر لـ `ZSTEP INTO`.
+- [x] توفير زر Status Bar مباشر لـ `ZSTEP OUTOF`.
+- [x] توفير زر Status Bar مباشر لـ `ZCONTINUE`.
 - [ ] دراسة Step Over وهل يكون `ZSTEP` أو `ZSTEP OVER` حسب دعم GT.M/MDEBUG.
 - [ ] إظهار `$ZPOSITION` في status bar بعد كل step.
-- [ ] إضافة command سريع لإعادة طباعة السطر الحالي.
+- [x] توفير زر Status Bar مباشر لإعادة طباعة السطر الحالي عبر `ZPRINT @$ZPOSITION`.
 
-**نسبة الإنجاز الحالية لهذه المرحلة:** 35% لأن Debug Adapter موجود، وبعض step methods موجودة، لكن direct-mode toolbar parity غير مكتمل.
+**نسبة الإنجاز الحالية لهذه المرحلة:** 65% بعد إضافة أزرار Status Bar ومساهمات `debug/toolBar` لأوامر MUMPS المباشرة. المتبقي هو تحسين Status Bar ليعرض `$ZPOSITION` live وربط capture النتائج الحقيقية.
 
 ### المرحلة 4: تحسين MDEBUG protocol/output
 
@@ -222,11 +222,11 @@ ZBREAK TEST+3^KJOTEST
 | أوامر `Z*` الأساسية | 80% | معظم commands موجودة، وتمت إضافة `ZPRINT...` وتحسين `ZBREAK`. |
 | `$ZPOSITION` و`$ZSTEP` | 60% | تمت إضافة commands لضبط `$ZSTEP` وعرض `$ZPOSITION`، والمتبقي capture/عرض القيمة فعليًا من MDEBUG. |
 | Output Channel | 55% | تمت إضافة قناة `MUMPS Debug` لتسجيل الأوامر والقبول والأخطاء، والمتبقي التقاط نتائج MDEBUG الفعلية. |
-| تجربة شبيهة Xdebug | 50% | mapping الأوامر تحسن مع keybindings وcommands إضافية، والمتبقي toolbar/status/capture أعمق. |
+| تجربة شبيهة Xdebug | 65% | لم تعد التجربة تعتمد على Command Palette فقط؛ تمت إضافة Status Bar controls وDebug Toolbar menu entries، والمتبقي عرض حالة `$ZPOSITION` ونتائج MDEBUG الحقيقية. |
 | MDEBUG protocol للأوامر الخام | 20% | custom request يرجع acknowledgement من Debug Adapter، لكن لا يلتقط output الحقيقي من MDEBUG بعد. |
 | التوثيق والاختبارات | 45% | تم تحديث الخطة لتتبع التنفيذ، لكن smoke test على GT.M/MDEBUG لا يزال مطلوبًا. |
 
-**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **55%** بعد تنفيذ أول دفعة من المرحلة 1 وجزء من المرحلة 2.
+**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **62%** بعد إضافة أزرار Status Bar وDebug Toolbar إلى جانب أوامر المرحلة 1 وجزء من المرحلة 2.
 
 بعد التقاط نتائج `ZWRITE`, `ZSHOW`, و`ZPRINT` فعليًا من MDEBUG protocol يمكن أن ترتفع النسبة إلى حوالي **70%** وتصبح التجربة قابلة للاختبار الداخلي بشكل جيد.
 
@@ -287,6 +287,20 @@ ZBREAK TEST+3^KJOTEST
 - إضافة setting باسم `mumps.debug.showOutputOnCommand` للتحكم في إظهار قناة المخرجات عند إرسال أوامر Direct Debug.
 - إضافة acknowledgement من Debug Adapter عند استقبال `mumps.rawCommand`.
 
-**النسبة بعد هذا التنفيذ:** 55% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
+**النسبة بعد هذا التنفيذ الأول:** 55% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
 
 **المتبقي الأقرب:** التقاط نتائج MDEBUG الحقيقية لأوامر `ZWRITE`, `ZSHOW`, و`ZPRINT` بدل الاكتفاء بتسجيل الأمر والقبول.
+
+---
+
+## 12) تحديث تنفيذ إضافي 2026-06-01
+
+استجابةً لعدم الرغبة بالاعتماد على Command Palette فقط، تمت إضافة طبقة UX أوضح:
+
+- أزرار Status Bar تظهر تلقائيًا عند وجود جلسة debug نشطة من نوع `mumps`: `ZC`, `ZST`, `INTO`, `OUT`, `ZB`, `ZP`, `ZWR`, `ZSH`, `$ZSTEP`, و`$ZPOS`.
+- مساهمات `debug/toolBar` لأوامر `ZBREAK`, `ZPRINT @$ZPOSITION`, `ZWRITE`, `ZSHOW`, `$ZSTEP`, و`$ZPOSITION` حتى تكون أقرب لمنطقة التحكم بالديبغ.
+- أصبح Command Palette مسارًا احتياطيًا فقط، بينما الاستخدام اليومي يمكن أن يتم من أزرار ظاهرة أثناء جلسة debug.
+
+**النسبة بعد هذا التنفيذ الإضافي:** 62% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
+
+**المتبقي الأقرب:** التقاط نتائج MDEBUG الحقيقية وتحديث Status Bar/Output Channel بموقع التنفيذ الحالي بدل عرض acknowledge فقط.

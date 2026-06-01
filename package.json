@@ -471,6 +471,40 @@
           "description": "Show the MUMPS Debug output channel whenever a direct debug command is sent."
         }
       }
+    },
+    "menus": {
+      "debug/toolBar": [
+        {
+          "command": "mumps.zbreak",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@1"
+        },
+        {
+          "command": "mumps.zprintAtPosition",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@2"
+        },
+        {
+          "command": "mumps.zwrite",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@3"
+        },
+        {
+          "command": "mumps.zshow",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@4"
+        },
+        {
+          "command": "mumps.configureZstepLinePrinting",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@5"
+        },
+        {
+          "command": "mumps.showZposition",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@6"
+        }
+      ]
     }
   }
 }

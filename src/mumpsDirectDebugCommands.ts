@@ -9,6 +9,26 @@ interface RawCommandResponse {
 	message?: string;
 }
 
+interface DirectDebugControl {
+	text: string;
+	tooltip: string;
+	command: string;
+	priority: number;
+}
+
+const directDebugControls: DirectDebugControl[] = [
+	{ text: '$(debug-continue) ZC', tooltip: 'MUMPS: ZCONTINUE', command: 'mumps.zcontinue', priority: 200 },
+	{ text: '$(debug-step-over) ZST', tooltip: 'MUMPS: ZSTEP', command: 'mumps.zstep', priority: 199 },
+	{ text: '$(debug-step-into) INTO', tooltip: 'MUMPS: ZSTEP INTO', command: 'mumps.zstepInto', priority: 198 },
+	{ text: '$(debug-step-out) OUT', tooltip: 'MUMPS: ZSTEP OUTOF', command: 'mumps.zstepOutOf', priority: 197 },
+	{ text: '$(debug-breakpoint) ZB', tooltip: 'MUMPS: ZBREAK...', command: 'mumps.zbreak', priority: 196 },
+	{ text: '$(code) ZP', tooltip: 'MUMPS: ZPRINT @$ZPOSITION', command: 'mumps.zprintAtPosition', priority: 195 },
+	{ text: '$(symbol-variable) ZWR', tooltip: 'MUMPS: ZWRITE variables', command: 'mumps.zwrite', priority: 194 },
+	{ text: '$(list-tree) ZSH', tooltip: 'MUMPS: ZSHOW stack/environment', command: 'mumps.zshow', priority: 193 },
+	{ text: '$(settings-gear) $ZSTEP', tooltip: 'MUMPS: Configure $ZSTEP line printing', command: 'mumps.configureZstepLinePrinting', priority: 192 },
+	{ text: '$(location) $ZPOS', tooltip: 'MUMPS: Show $ZPOSITION', command: 'mumps.showZposition', priority: 191 }
+];
+
 function shouldShowOutput(): boolean {
 	return vscode.workspace.getConfiguration('mumps').get<boolean>('debug.showOutputOnCommand', true) ?? true;
 }
@@ -150,4 +170,31 @@ export async function sendRawDebugCommand(): Promise<void> {
 		return;
 	}
 	await sendDebugCommand(command, 'Raw command');
+}
+
+export function registerDirectDebugControls(context: vscode.ExtensionContext): void {
+	const statusItems = directDebugControls.map((control) => {
+		const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, control.priority);
+		item.text = control.text;
+		item.tooltip = control.tooltip;
+		item.command = control.command;
+		context.subscriptions.push(item);
+		return item;
+	});
+	const updateVisibility = () => {
+		const isMumpsDebugSession = vscode.debug.activeDebugSession?.type === 'mumps';
+		for (const item of statusItems) {
+			if (isMumpsDebugSession) {
+				item.show();
+			} else {
+				item.hide();
+			}
+		}
+	};
+	context.subscriptions.push(
+		vscode.debug.onDidStartDebugSession(updateVisibility),
+		vscode.debug.onDidTerminateDebugSession(updateVisibility),
+		vscode.debug.onDidChangeActiveDebugSession(updateVisibility)
+	);
+	updateVisibility();
 }

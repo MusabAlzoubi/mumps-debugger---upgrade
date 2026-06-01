@@ -17,7 +17,7 @@ import CompletionItemProvider from './mumpsCompletionItemProvider';
 import expandCompress from './mumpsCompExp';
 import MumpsDiagnosticsProvider from './mumpsDiagnosticsProvider';
 import { insertPatchChangeBlockTemplate, insertRoutineHeaderTemplate } from './mumpsTemplateCommands';
-import { configureZstepLinePrinting, sendRawDebugCommand, showZposition, zbreak, zcontinue, zprint, zprintAtPos, zshow, zstep, zstepInto, zstepOutOf, zwrite } from './mumpsDirectDebugCommands';
+import { configureZstepLinePrinting, registerDirectDebugControls, sendRawDebugCommand, showZposition, zbreak, zcontinue, zprint, zprintAtPos, zshow, zstep, zstepInto, zstepOutOf, zwrite } from './mumpsDirectDebugCommands';
 import fs = require('fs');
 let timeout: ReturnType<typeof setTimeout> | undefined;
 const entryRef: string | undefined = "";
@@ -36,6 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.subscriptions.push(vscode.languages.registerCompletionItemProvider(MUMPS_MODE, new CompletionItemProvider(dbFile)));
 	}
 	const wsState = context.workspaceState;
+	registerDirectDebugControls(context);
 	context.subscriptions.push(
 		vscode.commands.registerCommand("mumps.documentFunction", () => { MumpsDocumenter(); }),
 		vscode.commands.registerCommand("mumps.autoSpaceEnter", () => { autoSpaceEnter(); }),
