@@ -64,6 +64,7 @@ export class MumpsConnect extends EventEmitter {
 	private _singleVar = "";
 	private _singleVarContent = "";
 	private _directCommandOutput: string[];
+	private _directCommandTail: Promise<void>;
 	constructor() {
 		super();
 		this._commandQueue = [];
@@ -77,6 +78,7 @@ export class MumpsConnect extends EventEmitter {
 		this._singleVar = "";
 		this._singleVarContent = "";
 		this._directCommandOutput = [];
+		this._directCommandTail = Promise.resolve();
 		this._hints = [];
 		this._event.on('varsComplete', () => {
 			if (typeof (this._mVars["I"]) !== 'undefined') {
@@ -290,7 +292,7 @@ export class MumpsConnect extends EventEmitter {
 		this.writeln("CONTINUE");
 	}
 
-	public async sendRawCommand(command: string): Promise<string> {
+	public async sendRawCommand(command: string, timeoutMs = 5000): Promise<string> {
 		const normalizedCommand = command.trim().toUpperCase();
 		if (normalizedCommand === "ZCONTINUE" || normalizedCommand === "ZC") {
 			this.continue();
@@ -308,19 +310,40 @@ export class MumpsConnect extends EventEmitter {
 			this.step("OUTOF");
 			return "MDEBUG stepped out.";
 		}
+		return this.enqueueDirectCommand(command, timeoutMs);
+	}
+
+	private enqueueDirectCommand(command: string, timeoutMs: number): Promise<string> {
+		const run = () => this.executeDirectCommand(command, timeoutMs);
+		const next = this._directCommandTail.then(run, run);
+		this._directCommandTail = next.then(() => undefined, () => undefined);
+		return next;
+	}
+
+	private executeDirectCommand(command: string, timeoutMs: number): Promise<string> {
 		return new Promise((resolve) => {
+			const safeTimeoutMs = Math.max(1000, timeoutMs || 5000);
 			const timeout = setTimeout(() => {
 				this._event.removeListener('DirectCommandReceived', directCommandReceived);
-				resolve("MDEBUG accepted command, but no direct output was returned before timeout.");
-			}, 3000);
+				resolve(`MDEBUG accepted command, but no direct output was returned within ${safeTimeoutMs} ms.`);
+			}, safeTimeoutMs);
 			const directCommandReceived = (event: EventEmitter, directOutput: string) => {
 				clearTimeout(timeout);
 				event.removeListener('DirectCommandReceived', directCommandReceived);
-				resolve(directOutput || "MDEBUG command completed with no output.");
+				resolve(this.normalizeDirectOutput(directOutput));
 			};
 			this._event.on('DirectCommandReceived', directCommandReceived);
 			this.writeln("DIRECT;" + command);
 		});
+	}
+
+	private normalizeDirectOutput(output: string): string {
+		const normalizedOutput = output
+			.split(/\r?\n/)
+			.map(line => line.trimEnd())
+			.join('\n')
+			.trim();
+		return normalizedOutput || "MDEBUG command completed with no output.";
 	}
 	public disconnect(): void {
 		this.writeln("RESET");

@@ -195,12 +195,12 @@ ZBREAK TEST+3^KJOTEST
 ### المرحلة 4: تحسين MDEBUG protocol/output
 
 - [x] تعديل `mumpsConnect` ليعيد response للأوامر الخام بدل `writeln` فقط.
-- [ ] إضافة request/response correlation للأوامر المباشرة إن أمكن.
+- [x] إضافة queue/correlation عملي يمنع تداخل أوامر `DIRECT` ويعيد نتيجة كل أمر للطلب الصحيح.
 - [x] التقاط output حتى marker واضح `***ENDDIRECT`.
 - [x] تحديث MDEBUG.m بإضافة أمر `DIRECT` وmarkers `***STARTDIRECT`/`***ENDDIRECT`.
-- [ ] إضافة timeout ورسائل خطأ مفهومة.
+- [x] إضافة timeout قابل للإعداد عبر `mumps.debug.directCommandTimeoutMs` ورسالة واضحة عند انتهاء المهلة.
 
-**نسبة الإنجاز الحالية لهذه المرحلة:** 60% لأن `sendRawCommand` صار يعيد output مباشرًا من MDEBUG عبر markers، والمتبقي request/response correlation أقوى وtimeouts مخصصة لكل أمر.
+**نسبة الإنجاز الحالية لهذه المرحلة:** 85% لأن `sendRawCommand` صار يعيد output مباشرًا من MDEBUG عبر markers، مع queue لمنع التداخل وtimeout قابل للإعداد. المتبقي hardening بعد smoke test حقيقي.
 
 ### المرحلة 5: اختبارات وتوثيق
 
@@ -221,12 +221,12 @@ ZBREAK TEST+3^KJOTEST
 |---|---:|---|
 | أوامر `Z*` الأساسية | 80% | معظم commands موجودة، وتمت إضافة `ZPRINT...` وتحسين `ZBREAK`. |
 | `$ZPOSITION` و`$ZSTEP` | 75% | تمت إضافة commands لضبط `$ZSTEP` وعرض `$ZPOSITION` وتحديث زر `$ZPOS` عند تغيّر الموقع. |
-| Output Channel | 85% | تمت إضافة قناة `MUMPS Debug` مع التقاط نتائج MDEBUG الفعلية عبر `DIRECT` markers، والمتبقي تحسين التنسيق وsmoke test. |
-| تجربة شبيهة Xdebug | 75% | تمت إضافة Status Bar controls وDebug Toolbar menu entries والتقاط output وتحديث `$ZPOS`، والمتبقي اختبار فعلي وتحسين polish. |
-| MDEBUG protocol للأوامر الخام | 60% | تمت إضافة أمر `DIRECT` في MDEBUG والتقاط output بين markers، والمتبقي hardening وcorrelation أعمق. |
+| Output Channel | 90% | تمت إضافة قناة `MUMPS Debug` مع تنسيق نتائج مستقل لكل أمر والتقاط نتائج MDEBUG الفعلية عبر `DIRECT` markers، والمتبقي smoke test وpolish. |
+| تجربة شبيهة Xdebug | 80% | تمت إضافة Status Bar controls وDebug Toolbar menu entries والتقاط output وتحديث `$ZPOS` وتنظيم نتائج الأوامر، والمتبقي اختبار فعلي وتحسين polish. |
+| MDEBUG protocol للأوامر الخام | 85% | تمت إضافة أمر `DIRECT` في MDEBUG والتقاط output بين markers مع queue وtimeout قابل للإعداد، والمتبقي hardening بعد الاختبار الفعلي. |
 | التوثيق والاختبارات | 45% | تم تحديث الخطة لتتبع التنفيذ، لكن smoke test على GT.M/MDEBUG لا يزال مطلوبًا. |
 
-**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **75%** بعد إضافة التقاط output الحقيقي من MDEBUG وتحديث زر `$ZPOS` live إلى جانب أزرار Status Bar وDebug Toolbar.
+**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **80%** بعد إضافة queue لمنع تضارب الأوامر، timeout قابل للإعداد، وتنسيق نتائج Output Channel لكل أمر.
 
 بعد smoke test على GT.M/MDEBUG وتحسين تنسيق النتائج يمكن أن ترتفع النسبة إلى حوالي **85%** وتصبح التجربة مناسبة لاختبار داخلي أوسع.
 
@@ -318,4 +318,18 @@ ZBREAK TEST+3^KJOTEST
 
 **النسبة بعد هذا التنفيذ:** 75% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
 
-**المتبقي الأقرب:** smoke test فعلي على GT.M/MDEBUG، وتحسين تنسيق مخرجات `ZWRITE`/`ZSHOW`، ومنع تضارب الأوامر إذا أرسل المستخدم أكثر من أمر مباشر في نفس اللحظة.
+**المتبقي الأقرب:** smoke test فعلي على GT.M/MDEBUG، ثم تحسينات polish مثل تصنيف مخرجات `ZWRITE`/`ZSHOW` بصريًا داخل Output Channel.
+
+---
+
+## 14) تحديث تنفيذ إضافي للـ queue والمهلة
+
+تمت إضافة hardening لمسار الأوامر المباشرة:
+
+- منع تداخل أوامر `DIRECT` عبر queue داخل `MumpsConnect` بحيث ينتظر كل أمر نتيجة الأمر السابق قبل الإرسال.
+- إضافة setting باسم `mumps.debug.directCommandTimeoutMs` لتحديد مهلة انتظار output من MDEBUG.
+- تحسين تنسيق Output Channel بحيث تظهر نتيجة كل أمر داخل section مستقل يحتوي اسم الأمر والناتج ونهاية واضحة.
+
+**النسبة بعد هذا التنفيذ:** 80% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
+
+**المتبقي الأقرب:** smoke test فعلي على GT.M/MDEBUG وتجميل عرض نتائج `ZWRITE` و`ZSHOW` عند الحاجة.

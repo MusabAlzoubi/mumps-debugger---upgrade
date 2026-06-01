@@ -47,6 +47,17 @@ function logCommand(command: string, label?: string): void {
 	appendOutput(`[${timestamp}] ${label ? label + ': ' : ''}${command}`);
 }
 
+function directCommandTimeoutMs(): number {
+	return vscode.workspace.getConfiguration('mumps').get<number>('debug.directCommandTimeoutMs', 5000) ?? 5000;
+}
+
+function appendCommandResult(command: string, label: string | undefined, message: string): void {
+	appendOutput(`--- ${label || 'MUMPS Direct Command'} result ---`);
+	appendOutput(`Command: ${command}`);
+	appendOutput((message || 'MDEBUG command completed with no output.').trim());
+	appendOutput('--- end result ---');
+}
+
 function isLikelyEntryReference(target: string): boolean {
 	return /^[A-Za-z%][A-Za-z0-9%]*(\+\d+)?\^[A-Za-z%][A-Za-z0-9%]*$/.test(target.trim());
 }
@@ -95,11 +106,11 @@ async function sendDebugCommand(command: string, label?: string): Promise<RawCom
 	}
 	logCommand(command, label);
 	try {
-		const response = await session.customRequest('mumps.rawCommand', { command }) as RawCommandResponse | undefined;
+		const response = await session.customRequest('mumps.rawCommand', { command, timeoutMs: directCommandTimeoutMs() }) as RawCommandResponse | undefined;
 		if (response?.message) {
-			appendOutput(response.message);
+			appendCommandResult(command, label, response.message);
 		} else {
-			appendOutput(`MDEBUG accepted command: ${command}`);
+			appendCommandResult(command, label, `MDEBUG accepted command: ${command}`);
 		}
 		return response;
 	} catch (error) {

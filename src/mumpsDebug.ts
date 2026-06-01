@@ -205,9 +205,9 @@ export default class MumpsDebugSession extends DebugSession {
 	}
 
 
-	protected async customRequest(command: string, response: DebugProtocol.Response, args: { command?: string }): Promise<void> {
+	protected async customRequest(command: string, response: DebugProtocol.Response, args: { command?: string; timeoutMs?: number }): Promise<void> {
 		if (command === 'mumps.rawCommand' && args?.command) {
-			const output = await this._mconnect.sendRawCommand(args.command);
+			const output = await this._mconnect.sendRawCommand(args.command, args.timeoutMs);
 			(response as DebugProtocol.Response & { body?: { accepted: boolean; command: string; message: string } }).body = {
 				accepted: true,
 				command: args.command,

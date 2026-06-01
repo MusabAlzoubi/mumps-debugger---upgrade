@@ -469,6 +469,12 @@
           "type": "boolean",
           "default": true,
           "description": "Show the MUMPS Debug output channel whenever a direct debug command is sent."
+        },
+        "mumps.debug.directCommandTimeoutMs": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 1000,
+          "description": "Timeout in milliseconds while waiting for output from a direct MDEBUG command."
         }
       }
     },
