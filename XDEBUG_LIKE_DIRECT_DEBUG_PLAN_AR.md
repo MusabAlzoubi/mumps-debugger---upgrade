@@ -190,7 +190,7 @@ ZBREAK TEST+3^KJOTEST
 - [x] إظهار `$ZPOSITION` في Status Bar عند وصول موقع جديد من MDEBUG.
 - [x] توفير زر Status Bar مباشر لإعادة طباعة السطر الحالي عبر `ZPRINT @$ZPOSITION`.
 
-**نسبة الإنجاز الحالية لهذه المرحلة:** 80% بعد إضافة أزرار Status Bar ومساهمات `debug/toolBar` وتحديث زر `$ZPOS` عند وصول موقع جديد من MDEBUG. المتبقي هو smoke test وتحسين عرض الموقع عند commands التي لا توقف التنفيذ.
+**نسبة الإنجاز الحالية لهذه المرحلة:** 88% بعد إضافة أزرار Status Bar، مساهمات `debug/toolBar`، ولوحة جانبية داخل Run and Debug باسم `MUMPS Direct Debug` تعرض نفس الأوامر كقائمة واضحة قابلة للنقر. المتبقي هو smoke test فعلي وتحسين عرض الموقع عند commands التي لا توقف التنفيذ.
 
 ### المرحلة 4: تحسين MDEBUG protocol/output
 
@@ -222,13 +222,13 @@ ZBREAK TEST+3^KJOTEST
 | أوامر `Z*` الأساسية | 80% | معظم commands موجودة، وتمت إضافة `ZPRINT...` وتحسين `ZBREAK`. |
 | `$ZPOSITION` و`$ZSTEP` | 75% | تمت إضافة commands لضبط `$ZSTEP` وعرض `$ZPOSITION` وتحديث زر `$ZPOS` عند تغيّر الموقع. |
 | Output Channel | 90% | تمت إضافة قناة `MUMPS Debug` مع تنسيق نتائج مستقل لكل أمر والتقاط نتائج MDEBUG الفعلية عبر `DIRECT` markers، والمتبقي smoke test وpolish. |
-| تجربة شبيهة Xdebug | 83% | تمت إضافة Status Bar controls وDebug Toolbar menu entries وزر setup واحد `MDBG` والتقاط output وتحديث `$ZPOS`، والمتبقي اختبار فعلي وتحسين polish. |
+| تجربة شبيهة Xdebug | 89% | تمت إضافة Status Bar controls وDebug Toolbar menu entries ولوحة Run and Debug جانبية `MUMPS Direct Debug` وزر setup `MDBG` وزر smoke test `TEST`، والمتبقي اختبار فعلي وتحسين polish. |
 | MDEBUG protocol للأوامر الخام | 85% | تمت إضافة أمر `DIRECT` في MDEBUG والتقاط output بين markers مع queue وtimeout قابل للإعداد، والمتبقي hardening بعد الاختبار الفعلي. |
 | التوثيق والاختبارات | 60% | تمت إضافة زر smoke test داخل VS Code، لكن تشغيله وتوثيق نتائجه على GT.M/MDEBUG الحقيقي لا يزال مطلوبًا. |
 
-**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **86%** بعد إضافة زر smoke test `TEST` إلى جانب زر setup `MDBG` والـ queue/timeout وتنسيق النتائج.
+**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **89%** بعد إضافة لوحة `MUMPS Direct Debug` داخل Run and Debug إلى جانب زر smoke test `TEST` وزر setup `MDBG` والـ queue/timeout وتنسيق النتائج.
 
-بعد smoke test على GT.M/MDEBUG وتحسين تنسيق النتائج يمكن أن ترتفع النسبة إلى حوالي **85%** وتصبح التجربة مناسبة لاختبار داخلي أوسع.
+بعد smoke test على GT.M/MDEBUG وتحسين تنسيق النتائج يمكن أن ترتفع النسبة إلى حوالي **92%** وتصبح التجربة مناسبة لاختبار داخلي أوسع.
 
 ---
 
@@ -362,3 +362,17 @@ ZBREAK TEST+3^KJOTEST
 **النسبة بعد هذا التنفيذ:** 86% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
 
 **المتبقي الأقرب:** تشغيل زر `TEST` على بيئة GT.M/MDEBUG حقيقية وتوثيق أي فروقات في output.
+
+
+## 17) تحديث تنفيذ إضافي للوحة Run and Debug
+
+تمت إضافة لوحة جانبية أوضح داخل Run and Debug لتقليل الاعتماد أكثر على Command Palette وStatus Bar فقط:
+
+- View باسم `MUMPS Direct Debug` داخل Debug sidebar عند جلسة `mumps` النشطة.
+- تعرض أوامر Direct Debug كقائمة قابلة للنقر: Smoke Test, Setup, Continue, Step Over, Step Into, Step Out, ZBREAK, ZPRINT, ZWRITE, ZSHOW, `$ZSTEP`, و`$ZPOSITION`.
+- تستخدم نفس الأوامر المسجلة، لذلك أي تحسين في command handler ينعكس على Status Bar وDebug Toolbar واللوحة الجانبية معًا.
+- يتم تحديث وصف عنصر `$ZPOSITION` داخل اللوحة عند وصول موقع جديد من MDEBUG أو عند التقاطه من ناتج `WRITE $ZPOSITION`.
+
+**النسبة بعد هذا التنفيذ:** 89% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
+
+**المتبقي الأقرب:** تشغيل اللوحة وزر `TEST` على بيئة GT.M/MDEBUG حقيقية، ثم تحسين تنسيق output حسب النتائج الفعلية.

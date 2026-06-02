@@ -539,6 +539,22 @@
           "group": "mumps@6"
         }
       ]
-    }
+    },
+    "views": {
+      "debug": [
+        {
+          "id": "mumpsDirectDebug",
+          "name": "MUMPS Direct Debug",
+          "when": "inDebugMode && debugType == mumps"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "mumpsDirectDebug",
+        "contents": "Start a MUMPS debug session to use Xdebug-like Direct Debug controls.\n[Direct Debug Setup](command:mumps.directDebugSetup)\n[Smoke Test](command:mumps.directDebugSmokeTest)",
+        "when": "!inDebugMode"
+      }
+    ]
   }
 }

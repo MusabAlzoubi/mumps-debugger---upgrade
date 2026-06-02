@@ -208,7 +208,15 @@ TOOLONGLABEL ; missing standard ;;
 
 ## 4.5 اختبار أوامر Direct Debug
 
-بعد تشغيل جلسة debug من نوع `mumps` أو attach إلى MDEBUG، جرّب من Command Palette:
+بعد تشغيل جلسة debug من نوع `mumps` أو attach إلى MDEBUG، لا تعتمد على Command Palette فقط؛ جرّب المسارات الأوضح التالية:
+
+1. افتح Run and Debug sidebar وتأكد من ظهور لوحة `MUMPS Direct Debug`.
+2. من اللوحة اضغط `Direct Debug Setup` أو زر Status Bar المختصر `MDBG`.
+3. اضغط `Smoke Test` أو زر Status Bar المختصر `TEST` لتجربة `$ZPOSITION`, `ZPRINT @$ZPOSITION`, `ZWRITE`, و`ZSHOW`.
+4. جرّب أزرار التنفيذ مثل `Continue`, `Step Over`, `Step Into`, و`Step Out`.
+5. راقب قناة `MUMPS Debug` Output Channel للتأكد من ظهور الأوامر ونتائجها.
+
+الأوامر نفسها لا تزال متاحة من Command Palette عند الحاجة:
 
 - `MUMPS: ZSTEP`
 - `MUMPS: ZSTEP INTO`
@@ -218,6 +226,8 @@ TOOLONGLABEL ; missing standard ;;
 - `MUMPS: ZSHOW`
 - `MUMPS: ZBREAK...`
 - `MUMPS: ZPRINT @$ZPOSITION`
+- `MUMPS: Direct Debug Setup`
+- `MUMPS: Direct Debug Smoke Test`
 - `MUMPS: Send Raw Debug Command...`
 
 أمثلة raw commands:
@@ -304,16 +314,16 @@ npm run publish
 | التوثيق والمعمارية | 80% | مراجعة نهائية وربط docs في README الرئيسي |
 | Standards Diagnostics | 45% | قواعد أكثر + quick fixes + tests |
 | Templates | 60% | قوالب RPC/FileMan/Entry Point + إعدادات company/version |
-| Direct Debug Commands | 90% | تشغيل زر TEST على MDEBUG الحقيقي + polish لتنسيق output |
+| Direct Debug Commands | 92% | تشغيل لوحة MUMPS Direct Debug وزر TEST على MDEBUG الحقيقي + polish لتنسيق output |
 | Attach Mode | 35% | اختبار فعلي مع listener + تحسين lifecycle |
 | Packaging/Marketplace | 40% | تغيير الهوية + LICENSE/NOTICE + نشر VSIX تجريبي |
 
-**النسبة الإجمالية التقريبية الآن: 66% من MVP داخلي قابل للاختبار بعد إضافة زر Smoke Test لأوامر Direct Debug داخل VS Code.**
+**النسبة الإجمالية التقريبية الآن: 67% من MVP داخلي قابل للاختبار بعد إضافة لوحة MUMPS Direct Debug داخل Run and Debug وزر Smoke Test لأوامر Direct Debug داخل VS Code.**
 
 للوصول إلى مرحلة اختبار داخلية جيدة نحتاج تقريبًا:
 
 1. المحافظة على نظافة lint بعد تنظيف مشاكل `src/mumpsDebug.ts` القديمة.
-2. تشغيل زر `TEST` على GT.M/MDEBUG حقيقي ثم polish لتنسيق output حسب النتائج.
+2. تشغيل لوحة `MUMPS Direct Debug` وزر `TEST` على GT.M/MDEBUG حقيقي ثم polish لتنسيق output حسب النتائج.
 3. إضافة test fixtures لقواعد standards.
 4. اختبار attach على بيئة GT.M/MDEBUG حقيقية.
 5. إعداد نسخة VSIX باسم جديد وتجربتها على VS Code نظيف.

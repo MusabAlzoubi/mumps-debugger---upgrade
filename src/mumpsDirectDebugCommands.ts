@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 const outputChannel = vscode.window.createOutputChannel('MUMPS Debug');
 const zbreakHistory: string[] = [];
 let positionStatusItem: vscode.StatusBarItem | undefined;
+let latestZposition = '';
+let directDebugTreeProvider: DirectDebugTreeProvider | undefined;
 
 interface RawCommandResponse {
 	accepted?: boolean;
@@ -18,6 +20,9 @@ interface SmokeStep {
 
 interface DirectDebugControl {
 	text: string;
+	label: string;
+	description: string;
+	icon: string;
 	tooltip: string;
 	command: string;
 	priority: number;
@@ -25,19 +30,47 @@ interface DirectDebugControl {
 }
 
 const directDebugControls: DirectDebugControl[] = [
-	{ text: '$(debug-console) TEST', tooltip: 'MUMPS: Direct Debug Smoke Test', command: 'mumps.directDebugSmokeTest', priority: 202 },
-	{ text: '$(debug-alt) MDBG', tooltip: 'MUMPS: Direct Debug Setup ($ZSTEP + $ZPOSITION + current line)', command: 'mumps.directDebugSetup', priority: 201 },
-	{ text: '$(debug-continue) ZC', tooltip: 'MUMPS: ZCONTINUE', command: 'mumps.zcontinue', priority: 200 },
-	{ text: '$(debug-step-over) ZST', tooltip: 'MUMPS: ZSTEP', command: 'mumps.zstep', priority: 199 },
-	{ text: '$(debug-step-into) INTO', tooltip: 'MUMPS: ZSTEP INTO', command: 'mumps.zstepInto', priority: 198 },
-	{ text: '$(debug-step-out) OUT', tooltip: 'MUMPS: ZSTEP OUTOF', command: 'mumps.zstepOutOf', priority: 197 },
-	{ text: '$(debug-breakpoint) ZB', tooltip: 'MUMPS: ZBREAK...', command: 'mumps.zbreak', priority: 196 },
-	{ text: '$(code) ZP', tooltip: 'MUMPS: ZPRINT @$ZPOSITION', command: 'mumps.zprintAtPosition', priority: 195 },
-	{ text: '$(symbol-variable) ZWR', tooltip: 'MUMPS: ZWRITE variables', command: 'mumps.zwrite', priority: 194 },
-	{ text: '$(list-tree) ZSH', tooltip: 'MUMPS: ZSHOW stack/environment', command: 'mumps.zshow', priority: 193 },
-	{ text: '$(settings-gear) $ZSTEP', tooltip: 'MUMPS: Configure $ZSTEP line printing', command: 'mumps.configureZstepLinePrinting', priority: 192 },
-	{ text: '$(location) $ZPOS', tooltip: 'MUMPS: Show $ZPOSITION', command: 'mumps.showZposition', priority: 191, isPosition: true }
+	{ text: '$(debug-console) TEST', label: 'Smoke Test', description: 'TEST', icon: 'debug-console', tooltip: 'MUMPS: Direct Debug Smoke Test', command: 'mumps.directDebugSmokeTest', priority: 202 },
+	{ text: '$(debug-alt) MDBG', label: 'Direct Debug Setup', description: 'MDBG', icon: 'debug-alt', tooltip: 'MUMPS: Direct Debug Setup ($ZSTEP + $ZPOSITION + current line)', command: 'mumps.directDebugSetup', priority: 201 },
+	{ text: '$(debug-continue) ZC', label: 'Continue', description: 'ZCONTINUE', icon: 'debug-continue', tooltip: 'MUMPS: ZCONTINUE', command: 'mumps.zcontinue', priority: 200 },
+	{ text: '$(debug-step-over) ZST', label: 'Step Over', description: 'ZSTEP', icon: 'debug-step-over', tooltip: 'MUMPS: ZSTEP', command: 'mumps.zstep', priority: 199 },
+	{ text: '$(debug-step-into) INTO', label: 'Step Into', description: 'ZSTEP INTO', icon: 'debug-step-into', tooltip: 'MUMPS: ZSTEP INTO', command: 'mumps.zstepInto', priority: 198 },
+	{ text: '$(debug-step-out) OUT', label: 'Step Out', description: 'ZSTEP OUTOF', icon: 'debug-step-out', tooltip: 'MUMPS: ZSTEP OUTOF', command: 'mumps.zstepOutOf', priority: 197 },
+	{ text: '$(debug-breakpoint) ZB', label: 'Set Breakpoint', description: 'ZBREAK', icon: 'debug-breakpoint', tooltip: 'MUMPS: ZBREAK...', command: 'mumps.zbreak', priority: 196 },
+	{ text: '$(code) ZP', label: 'Print Current Line', description: 'ZPRINT @$ZPOSITION', icon: 'code', tooltip: 'MUMPS: ZPRINT @$ZPOSITION', command: 'mumps.zprintAtPosition', priority: 195 },
+	{ text: '$(symbol-variable) ZWR', label: 'Inspect Variables', description: 'ZWRITE', icon: 'symbol-variable', tooltip: 'MUMPS: ZWRITE variables', command: 'mumps.zwrite', priority: 194 },
+	{ text: '$(list-tree) ZSH', label: 'Show Stack/Environment', description: 'ZSHOW', icon: 'list-tree', tooltip: 'MUMPS: ZSHOW stack/environment', command: 'mumps.zshow', priority: 193 },
+	{ text: '$(settings-gear) $ZSTEP', label: 'Configure Step Printing', description: '$ZSTEP', icon: 'settings-gear', tooltip: 'MUMPS: Configure $ZSTEP line printing', command: 'mumps.configureZstepLinePrinting', priority: 192 },
+	{ text: '$(location) $ZPOS', label: 'Show Current Position', description: '$ZPOSITION', icon: 'location', tooltip: 'MUMPS: Show $ZPOSITION', command: 'mumps.showZposition', priority: 191, isPosition: true }
 ];
+
+class DirectDebugTreeItem extends vscode.TreeItem {
+	constructor(control: DirectDebugControl) {
+		super(control.label, vscode.TreeItemCollapsibleState.None);
+		this.description = control.isPosition && latestZposition ? latestZposition : control.description;
+		this.tooltip = control.isPosition && latestZposition ? `${control.tooltip}: ${latestZposition}` : control.tooltip;
+		this.iconPath = new vscode.ThemeIcon(control.icon);
+		this.command = { command: control.command, title: control.tooltip };
+		this.contextValue = 'mumpsDirectDebugAction';
+	}
+}
+
+class DirectDebugTreeProvider implements vscode.TreeDataProvider<DirectDebugTreeItem> {
+	private readonly changeEmitter = new vscode.EventEmitter<DirectDebugTreeItem | undefined | null | void>();
+	readonly onDidChangeTreeData = this.changeEmitter.event;
+
+	refresh(): void {
+		this.changeEmitter.fire();
+	}
+
+	getTreeItem(element: DirectDebugTreeItem): vscode.TreeItem {
+		return element;
+	}
+
+	getChildren(): DirectDebugTreeItem[] {
+		return directDebugControls.map(control => new DirectDebugTreeItem(control));
+	}
+}
 
 function shouldShowOutput(): boolean {
 	return vscode.workspace.getConfiguration('mumps').get<boolean>('debug.showOutputOnCommand', true) ?? true;
@@ -61,6 +94,7 @@ function directCommandTimeoutMs(): number {
 
 function appendCommandResult(command: string, label: string | undefined, message: string): void {
 	const normalizedMessage = (message || 'MDEBUG command completed with no output.').trim();
+	updatePositionFromDirectOutput(command, normalizedMessage);
 	const isError = isDirectCommandError(normalizedMessage);
 	appendOutput(`--- ${isError ? 'ERROR: ' : ''}${label || 'MUMPS Direct Command'} result ---`);
 	appendOutput(`Command: ${command}`);
@@ -73,6 +107,16 @@ function appendCommandResult(command: string, label: string | undefined, message
 
 function isDirectCommandError(message: string): boolean {
 	return message.includes('***DIRECTERR') || message.includes('no direct output was returned');
+}
+
+function updatePositionFromDirectOutput(command: string, message: string): void {
+	if (!command.toUpperCase().includes('$ZPOSITION')) {
+		return;
+	}
+	const position = message.split(/\r?\n/).map(line => line.trim()).find(line => /^[^\s]+\^[^\s]+$/.test(line));
+	if (position) {
+		updateDirectDebugPosition(position);
+	}
 }
 
 function isLikelyEntryReference(target: string): boolean {
@@ -236,6 +280,8 @@ export async function sendRawDebugCommand(): Promise<void> {
 }
 
 export function registerDirectDebugControls(context: vscode.ExtensionContext): void {
+	directDebugTreeProvider = new DirectDebugTreeProvider();
+	context.subscriptions.push(vscode.window.registerTreeDataProvider('mumpsDirectDebug', directDebugTreeProvider));
 	const statusItems = directDebugControls.map((control) => {
 		const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, control.priority);
 		item.text = control.text;
@@ -270,9 +316,10 @@ export function registerDirectDebugControls(context: vscode.ExtensionContext): v
 
 
 export function updateDirectDebugPosition(position: string): void {
-	if (!positionStatusItem) {
-		return;
+	latestZposition = position;
+	if (positionStatusItem) {
+		positionStatusItem.text = `$(location) ${position || '$ZPOS'}`;
+		positionStatusItem.tooltip = position ? `MUMPS current $ZPOSITION: ${position}` : 'MUMPS: Show $ZPOSITION';
 	}
-	positionStatusItem.text = `$(location) ${position || '$ZPOS'}`;
-	positionStatusItem.tooltip = position ? `MUMPS current $ZPOSITION: ${position}` : 'MUMPS: Show $ZPOSITION';
+	directDebugTreeProvider?.refresh();
 }
