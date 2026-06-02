@@ -135,6 +135,18 @@
       {
         "command": "mumps.sendRawDebugCommand",
         "title": "MUMPS: Send Raw Debug Command..."
+      },
+      {
+        "command": "mumps.openDirectDebugOutput",
+        "title": "MUMPS: Open Direct Debug Output"
+      },
+      {
+        "command": "mumps.copyLastDirectDebugOutput",
+        "title": "MUMPS: Copy Last Direct Debug Output"
+      },
+      {
+        "command": "mumps.clearDirectDebugOutput",
+        "title": "MUMPS: Clear Direct Debug Output"
       }
     ],
     "debuggers": [
@@ -537,6 +549,23 @@
           "command": "mumps.showZposition",
           "when": "inDebugMode && debugType == mumps",
           "group": "mumps@6"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "mumps.directDebugSmokeTest",
+          "when": "view == mumpsDirectDebug",
+          "group": "navigation@0"
+        },
+        {
+          "command": "mumps.openDirectDebugOutput",
+          "when": "view == mumpsDirectDebug",
+          "group": "navigation@1"
+        },
+        {
+          "command": "mumps.clearDirectDebugOutput",
+          "when": "view == mumpsDirectDebug",
+          "group": "navigation@2"
         }
       ]
     },

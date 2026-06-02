@@ -215,6 +215,7 @@ TOOLONGLABEL ; missing standard ;;
 3. اضغط `Smoke Test` أو زر Status Bar المختصر `TEST` لتجربة `$ZPOSITION`, `ZPRINT @$ZPOSITION`, `ZWRITE`, و`ZSHOW`.
 4. جرّب أزرار التنفيذ مثل `Continue`, `Step Over`, `Step Into`, و`Step Out`.
 5. راقب قناة `MUMPS Debug` Output Channel للتأكد من ظهور الأوامر ونتائجها.
+6. جرّب عناصر اللوحة `Run Raw Direct Command`, `Open Debug Output`, `Copy Last Output`, و`Clear Debug Output` للتأكد من إدارة النتائج بدون Command Palette.
 
 الأوامر نفسها لا تزال متاحة من Command Palette عند الحاجة:
 
@@ -314,11 +315,11 @@ npm run publish
 | التوثيق والمعمارية | 80% | مراجعة نهائية وربط docs في README الرئيسي |
 | Standards Diagnostics | 45% | قواعد أكثر + quick fixes + tests |
 | Templates | 60% | قوالب RPC/FileMan/Entry Point + إعدادات company/version |
-| Direct Debug Commands | 92% | تشغيل لوحة MUMPS Direct Debug وزر TEST على MDEBUG الحقيقي + polish لتنسيق output |
+| Direct Debug Commands | 93% | تشغيل لوحة MUMPS Direct Debug وزر TEST على MDEBUG الحقيقي + polish لتنسيق output |
 | Attach Mode | 35% | اختبار فعلي مع listener + تحسين lifecycle |
 | Packaging/Marketplace | 40% | تغيير الهوية + LICENSE/NOTICE + نشر VSIX تجريبي |
 
-**النسبة الإجمالية التقريبية الآن: 67% من MVP داخلي قابل للاختبار بعد إضافة لوحة MUMPS Direct Debug داخل Run and Debug وزر Smoke Test لأوامر Direct Debug داخل VS Code.**
+**النسبة الإجمالية التقريبية الآن: 68% من MVP داخلي قابل للاختبار بعد إضافة لوحة MUMPS Direct Debug وأدوات output داخل Run and Debug وزر Smoke Test لأوامر Direct Debug داخل VS Code.**
 
 للوصول إلى مرحلة اختبار داخلية جيدة نحتاج تقريبًا:
 

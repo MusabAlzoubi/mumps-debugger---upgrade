@@ -4,6 +4,8 @@ const outputChannel = vscode.window.createOutputChannel('MUMPS Debug');
 const zbreakHistory: string[] = [];
 let positionStatusItem: vscode.StatusBarItem | undefined;
 let latestZposition = '';
+let lastDirectCommand = '';
+let lastDirectOutput = '';
 let directDebugTreeProvider: DirectDebugTreeProvider | undefined;
 
 interface RawCommandResponse {
@@ -27,6 +29,7 @@ interface DirectDebugControl {
 	command: string;
 	priority: number;
 	isPosition?: boolean;
+	showInStatus?: boolean;
 }
 
 const directDebugControls: DirectDebugControl[] = [
@@ -41,7 +44,11 @@ const directDebugControls: DirectDebugControl[] = [
 	{ text: '$(symbol-variable) ZWR', label: 'Inspect Variables', description: 'ZWRITE', icon: 'symbol-variable', tooltip: 'MUMPS: ZWRITE variables', command: 'mumps.zwrite', priority: 194 },
 	{ text: '$(list-tree) ZSH', label: 'Show Stack/Environment', description: 'ZSHOW', icon: 'list-tree', tooltip: 'MUMPS: ZSHOW stack/environment', command: 'mumps.zshow', priority: 193 },
 	{ text: '$(settings-gear) $ZSTEP', label: 'Configure Step Printing', description: '$ZSTEP', icon: 'settings-gear', tooltip: 'MUMPS: Configure $ZSTEP line printing', command: 'mumps.configureZstepLinePrinting', priority: 192 },
-	{ text: '$(location) $ZPOS', label: 'Show Current Position', description: '$ZPOSITION', icon: 'location', tooltip: 'MUMPS: Show $ZPOSITION', command: 'mumps.showZposition', priority: 191, isPosition: true }
+	{ text: '$(location) $ZPOS', label: 'Show Current Position', description: '$ZPOSITION', icon: 'location', tooltip: 'MUMPS: Show $ZPOSITION', command: 'mumps.showZposition', priority: 191, isPosition: true },
+	{ text: '$(terminal) RAW', label: 'Run Raw Direct Command', description: 'DIRECT', icon: 'terminal', tooltip: 'MUMPS: Send Raw Debug Command...', command: 'mumps.sendRawDebugCommand', priority: 190, showInStatus: false },
+	{ text: '$(output) OUT', label: 'Open Debug Output', description: 'MUMPS Debug', icon: 'output', tooltip: 'MUMPS: Open Direct Debug Output', command: 'mumps.openDirectDebugOutput', priority: 189, showInStatus: false },
+	{ text: '$(copy) COPY', label: 'Copy Last Output', description: 'last result', icon: 'copy', tooltip: 'MUMPS: Copy Last Direct Debug Output', command: 'mumps.copyLastDirectDebugOutput', priority: 188, showInStatus: false },
+	{ text: '$(clear-all) CLEAR', label: 'Clear Debug Output', description: 'Output Channel', icon: 'clear-all', tooltip: 'MUMPS: Clear Direct Debug Output', command: 'mumps.clearDirectDebugOutput', priority: 187, showInStatus: false }
 ];
 
 class DirectDebugTreeItem extends vscode.TreeItem {
@@ -94,6 +101,8 @@ function directCommandTimeoutMs(): number {
 
 function appendCommandResult(command: string, label: string | undefined, message: string): void {
 	const normalizedMessage = (message || 'MDEBUG command completed with no output.').trim();
+	lastDirectCommand = command;
+	lastDirectOutput = normalizedMessage;
 	updatePositionFromDirectOutput(command, normalizedMessage);
 	const isError = isDirectCommandError(normalizedMessage);
 	appendOutput(`--- ${isError ? 'ERROR: ' : ''}${label || 'MUMPS Direct Command'} result ---`);
@@ -279,10 +288,33 @@ export async function sendRawDebugCommand(): Promise<void> {
 	await sendDebugCommand(command, 'Raw command');
 }
 
+export function openDirectDebugOutput(): void {
+	outputChannel.show(true);
+}
+
+export function clearDirectDebugOutput(): void {
+	outputChannel.clear();
+	lastDirectCommand = '';
+	lastDirectOutput = '';
+	appendOutput('MUMPS Debug output cleared.', true);
+}
+
+export async function copyLastDirectDebugOutput(): Promise<void> {
+	if (!lastDirectOutput) {
+		const message = 'No MUMPS direct debug output has been captured yet.';
+		appendOutput(`[warning] ${message}`, true);
+		vscode.window.showWarningMessage(message);
+		return;
+	}
+	const text = lastDirectCommand ? `Command: ${lastDirectCommand}\n${lastDirectOutput}` : lastDirectOutput;
+	await vscode.env.clipboard.writeText(text);
+	vscode.window.showInformationMessage('Copied last MUMPS direct debug output.');
+}
+
 export function registerDirectDebugControls(context: vscode.ExtensionContext): void {
 	directDebugTreeProvider = new DirectDebugTreeProvider();
 	context.subscriptions.push(vscode.window.registerTreeDataProvider('mumpsDirectDebug', directDebugTreeProvider));
-	const statusItems = directDebugControls.map((control) => {
+	const statusItems = directDebugControls.filter(control => control.showInStatus !== false).map((control) => {
 		const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, control.priority);
 		item.text = control.text;
 		item.tooltip = control.tooltip;

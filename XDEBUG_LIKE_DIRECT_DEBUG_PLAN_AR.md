@@ -190,7 +190,7 @@ ZBREAK TEST+3^KJOTEST
 - [x] إظهار `$ZPOSITION` في Status Bar عند وصول موقع جديد من MDEBUG.
 - [x] توفير زر Status Bar مباشر لإعادة طباعة السطر الحالي عبر `ZPRINT @$ZPOSITION`.
 
-**نسبة الإنجاز الحالية لهذه المرحلة:** 88% بعد إضافة أزرار Status Bar، مساهمات `debug/toolBar`، ولوحة جانبية داخل Run and Debug باسم `MUMPS Direct Debug` تعرض نفس الأوامر كقائمة واضحة قابلة للنقر. المتبقي هو smoke test فعلي وتحسين عرض الموقع عند commands التي لا توقف التنفيذ.
+**نسبة الإنجاز الحالية لهذه المرحلة:** 90% بعد إضافة أزرار Status Bar، مساهمات `debug/toolBar`، ولوحة جانبية داخل Run and Debug باسم `MUMPS Direct Debug` تعرض نفس الأوامر كقائمة واضحة قابلة للنقر، مع أدوات فتح/نسخ/تنظيف output. المتبقي هو smoke test فعلي وتحسين عرض الموقع عند commands التي لا توقف التنفيذ.
 
 ### المرحلة 4: تحسين MDEBUG protocol/output
 
@@ -221,14 +221,14 @@ ZBREAK TEST+3^KJOTEST
 |---|---:|---|
 | أوامر `Z*` الأساسية | 80% | معظم commands موجودة، وتمت إضافة `ZPRINT...` وتحسين `ZBREAK`. |
 | `$ZPOSITION` و`$ZSTEP` | 75% | تمت إضافة commands لضبط `$ZSTEP` وعرض `$ZPOSITION` وتحديث زر `$ZPOS` عند تغيّر الموقع. |
-| Output Channel | 90% | تمت إضافة قناة `MUMPS Debug` مع تنسيق نتائج مستقل لكل أمر والتقاط نتائج MDEBUG الفعلية عبر `DIRECT` markers، والمتبقي smoke test وpolish. |
-| تجربة شبيهة Xdebug | 89% | تمت إضافة Status Bar controls وDebug Toolbar menu entries ولوحة Run and Debug جانبية `MUMPS Direct Debug` وزر setup `MDBG` وزر smoke test `TEST`، والمتبقي اختبار فعلي وتحسين polish. |
+| Output Channel | 93% | تمت إضافة قناة `MUMPS Debug` مع تنسيق نتائج مستقل لكل أمر والتقاط نتائج MDEBUG الفعلية عبر `DIRECT` markers، وأوامر فتح/نسخ آخر نتيجة/تنظيف القناة من اللوحة، والمتبقي smoke test وpolish. |
+| تجربة شبيهة Xdebug | 90% | تمت إضافة Status Bar controls وDebug Toolbar menu entries ولوحة Run and Debug جانبية `MUMPS Direct Debug` وزر setup `MDBG` وزر smoke test `TEST` وأدوات output، والمتبقي اختبار فعلي وتحسين polish. |
 | MDEBUG protocol للأوامر الخام | 85% | تمت إضافة أمر `DIRECT` في MDEBUG والتقاط output بين markers مع queue وtimeout قابل للإعداد، والمتبقي hardening بعد الاختبار الفعلي. |
 | التوثيق والاختبارات | 60% | تمت إضافة زر smoke test داخل VS Code، لكن تشغيله وتوثيق نتائجه على GT.M/MDEBUG الحقيقي لا يزال مطلوبًا. |
 
-**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **89%** بعد إضافة لوحة `MUMPS Direct Debug` داخل Run and Debug إلى جانب زر smoke test `TEST` وزر setup `MDBG` والـ queue/timeout وتنسيق النتائج.
+**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **90%** بعد إضافة لوحة `MUMPS Direct Debug` داخل Run and Debug إلى جانب زر smoke test `TEST` وزر setup `MDBG` وأدوات output والـ queue/timeout وتنسيق النتائج.
 
-بعد smoke test على GT.M/MDEBUG وتحسين تنسيق النتائج يمكن أن ترتفع النسبة إلى حوالي **92%** وتصبح التجربة مناسبة لاختبار داخلي أوسع.
+بعد smoke test على GT.M/MDEBUG وتحسين تنسيق النتائج يمكن أن ترتفع النسبة إلى حوالي **93%** وتصبح التجربة مناسبة لاختبار داخلي أوسع.
 
 ---
 
@@ -376,3 +376,18 @@ ZBREAK TEST+3^KJOTEST
 **النسبة بعد هذا التنفيذ:** 89% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
 
 **المتبقي الأقرب:** تشغيل اللوحة وزر `TEST` على بيئة GT.M/MDEBUG حقيقية، ثم تحسين تنسيق output حسب النتائج الفعلية.
+
+
+## 18) تحديث تنفيذ إضافي لأدوات Output داخل اللوحة
+
+تمت إضافة أدوات عملية في لوحة `MUMPS Direct Debug` لإدارة نتائج الأوامر بدون الرجوع إلى Command Palette:
+
+- `Run Raw Direct Command`: تشغيل أمر مباشر مخصص مثل `ZWRITE` أو `ZSHOW` من اللوحة.
+- `Open Debug Output`: فتح قناة `MUMPS Debug` مباشرة.
+- `Copy Last Output`: نسخ آخر نتيجة Direct Debug إلى clipboard مع اسم الأمر.
+- `Clear Debug Output`: تنظيف قناة output وإعادة ضبط آخر نتيجة محفوظة.
+- هذه الأدوات تظهر في اللوحة الجانبية فقط حتى لا تزدحم أزرار Status Bar.
+
+**النسبة بعد هذا التنفيذ:** 90% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
+
+**المتبقي الأقرب:** تشغيل اللوحة كاملة على GT.M/MDEBUG حقيقي، ثم تحسين عرض النتائج بناءً على output الفعلي.
