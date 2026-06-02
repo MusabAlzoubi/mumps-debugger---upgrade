@@ -2,6 +2,10 @@
 
 > هذا الملف يشرح عمليًا كيف تجهّز هذا الريبو للنشر كإضافة VS Code باسمك، وكيف تختبر التحديثات الحالية: الستاندرد، القوالب، أوامر الديبغ المباشر، وميزة attach.
 
+> لخطة تفصيلية تجعل أوامر Direct Debug (`ZBREAK`, `ZSTEP`, `ZWRITE`, `$ZPOSITION`, `$ZSTEP`) أقرب لتجربة Xdebug في PHP، راجع: [XDEBUG_LIKE_DIRECT_DEBUG_PLAN_AR.md](./XDEBUG_LIKE_DIRECT_DEBUG_PLAN_AR.md).
+
+> للدليل العملي التفصيلي لاختبار وتجريب الإضافة بعد كل تعديل، راجع: [VS_CODE_EXTENSION_TESTING_STEPS_AR.md](./VS_CODE_EXTENSION_TESTING_STEPS_AR.md).
+
 ---
 
 ## 1) قبل النشر باسمك
@@ -206,7 +210,16 @@ TOOLONGLABEL ; missing standard ;;
 
 ## 4.5 اختبار أوامر Direct Debug
 
-بعد تشغيل جلسة debug من نوع `mumps` أو attach إلى MDEBUG، جرّب من Command Palette:
+بعد تشغيل جلسة debug من نوع `mumps` أو attach إلى MDEBUG، لا تعتمد على Command Palette فقط؛ جرّب المسارات الأوضح التالية:
+
+1. افتح Run and Debug sidebar وتأكد من ظهور لوحة `MUMPS Direct Debug`.
+2. من اللوحة اضغط `Direct Debug Setup` أو زر Status Bar المختصر `MDBG`.
+3. اضغط `Smoke Test` أو زر Status Bar المختصر `TEST` لتجربة `$ZPOSITION`, `ZPRINT @$ZPOSITION`, `ZWRITE`, و`ZSHOW`.
+4. جرّب أزرار التنفيذ مثل `Continue`, `Step Over`, `Step Into`, و`Step Out`.
+5. راقب قناة `MUMPS Debug` Output Channel للتأكد من ظهور الأوامر ونتائجها.
+6. جرّب عناصر اللوحة `Run Raw Direct Command`, `Open Debug Output`, `Copy Last Output`, و`Clear Debug Output` للتأكد من إدارة النتائج بدون Command Palette.
+
+الأوامر نفسها لا تزال متاحة من Command Palette عند الحاجة:
 
 - `MUMPS: ZSTEP`
 - `MUMPS: ZSTEP INTO`
@@ -216,6 +229,8 @@ TOOLONGLABEL ; missing standard ;;
 - `MUMPS: ZSHOW`
 - `MUMPS: ZBREAK...`
 - `MUMPS: ZPRINT @$ZPOSITION`
+- `MUMPS: Direct Debug Setup`
+- `MUMPS: Direct Debug Smoke Test`
 - `MUMPS: Send Raw Debug Command...`
 
 أمثلة raw commands:
@@ -299,19 +314,19 @@ npm run publish
 
 | المحور | الإنجاز | المتبقي |
 |---|---:|---|
-| التوثيق والمعمارية | 80% | مراجعة نهائية وربط docs في README الرئيسي |
+| التوثيق والمعمارية | 88% | مراجعة نهائية + إبقاء دليل الاختبار محدثًا بعد كل تعديل |
 | Standards Diagnostics | 45% | قواعد أكثر + quick fixes + tests |
 | Templates | 60% | قوالب RPC/FileMan/Entry Point + إعدادات company/version |
-| Direct Debug Commands | 55% | عرض output بشكل واضح + smoke test مع MDEBUG |
+| Direct Debug Commands | 93% | تشغيل لوحة MUMPS Direct Debug وزر TEST على MDEBUG الحقيقي + polish لتنسيق output |
 | Attach Mode | 35% | اختبار فعلي مع listener + تحسين lifecycle |
 | Packaging/Marketplace | 40% | تغيير الهوية + LICENSE/NOTICE + نشر VSIX تجريبي |
 
-**النسبة الإجمالية التقريبية الآن: 50% من MVP داخلي قابل للاختبار.**
+**النسبة الإجمالية التقريبية الآن: 69% من MVP داخلي قابل للاختبار بعد إضافة دليل اختبار تفصيلي للإضافة وربطه بالـ README ودليل النشر.**
 
 للوصول إلى مرحلة اختبار داخلية جيدة نحتاج تقريبًا:
 
-1. تنظيف lint legacy في `src/mumpsDebug.ts`.
-2. إضافة Output Channel لأوامر direct debug.
+1. المحافظة على نظافة lint بعد تنظيف مشاكل `src/mumpsDebug.ts` القديمة.
+2. تشغيل لوحة `MUMPS Direct Debug` وزر `TEST` على GT.M/MDEBUG حقيقي ثم polish لتنسيق output حسب النتائج.
 3. إضافة test fixtures لقواعد standards.
 4. اختبار attach على بيئة GT.M/MDEBUG حقيقية.
 5. إعداد نسخة VSIX باسم جديد وتجربتها على VS Code نظيف.

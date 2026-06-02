@@ -50,7 +50,7 @@ INIT    			;Open TCP-Communication-Port
 WAIT(%ZPOS)   			;Wait for next Command from Editor
 	N %DEV,%IO,%CMD,%CMDS,%CMDLINE,%SOCKET,%I,%VAR,%MI
 	;possible Debugger-Commands
-	S %CMDS="START;QUIT;EXIT;INTO;OUTOF;OVER;CONTINUE;SETBP;VARS;INTERNALS;CLEARBP;REQUESTBP;RESET;GETVAR;ERRCHK;RESTART"
+	S %CMDS="START;QUIT;EXIT;INTO;OUTOF;OVER;CONTINUE;SETBP;VARS;INTERNALS;CLEARBP;REQUESTBP;RESET;GETVAR;ERRCHK;RESTART;DIRECT"
 	S %IO=$I
 	S %DEV=^%MDEBUG($J,"DEV"),%SOCKET=^%MDEBUG($J,"SOCKET")
 	U %DEV:(SOCKET=%SOCKET:DELIM=$C(10):EXCEPTION="HALT")
@@ -77,6 +77,7 @@ READLOOP			;Wait for next Command from Editor
 	I %CMD="CLEARBP" D CLEARBP($P(%CMDLINE,";",2),$P(%CMDLINE,";",3)) G READLOOP	;Clear a Breakpoint
 	I %CMD="RESET" G RESET						; Reset States and wait for a new Connection
 	I %CMD="ERRCHK" D ERRCHK G READLOOP				; Check following Lines if it's legal Mumps-Code
+	I %CMD="DIRECT" D DIRECT($P(%CMDLINE,";",2,999)) G READLOOP	; Execute direct debug command and return its output
 	U %IO
 	I %CMD="INTO" Q:$D(^%MDEBUG($J,"BP",$$POSCONV(%ZPOS))) "O" Q "I"	;Prevent Double-Stop if it's ZSTEP INTO and Breakpoint
 	Q:%CMD="INTO" "I"
@@ -89,6 +90,15 @@ READLOOP			;Wait for next Command from Editor
 	I %CMD="EXIT"!(%CMD="QUIT") G BYE					;End of Debugging
 	;Shouldn't get here
 	HALT
+DIRECT(%DIRECT)			;Execute direct command and transmit its output to Debugger
+	N $ZT,%ERR
+	W "***STARTDIRECT",!
+	S $ZT="S %ERR=$ZSTATUS W !,""***DIRECTERR"",!,%ERR,! S $ECODE="""" G DIRECTEND^"_$T(+0)
+	X %DIRECT
+DIRECTEND
+	W !,"***ENDDIRECT",!
+	S $ZSTATUS=""
+	Q
 BYE				;Clean Up and end Program
 	S %DEV=$G(^%MDEBUG($J,"DEV"))
 	C:%DEV'="" %DEV

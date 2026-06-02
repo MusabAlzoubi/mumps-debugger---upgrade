@@ -113,8 +113,40 @@
         "title": "MUMPS: ZSTEP OUTOF"
       },
       {
+        "command": "mumps.zprint",
+        "title": "MUMPS: ZPRINT..."
+      },
+      {
+        "command": "mumps.configureZstepLinePrinting",
+        "title": "MUMPS: Configure $ZSTEP Line Printing"
+      },
+      {
+        "command": "mumps.showZposition",
+        "title": "MUMPS: Show $ZPOSITION"
+      },
+      {
+        "command": "mumps.directDebugSetup",
+        "title": "MUMPS: Direct Debug Setup"
+      },
+      {
+        "command": "mumps.directDebugSmokeTest",
+        "title": "MUMPS: Direct Debug Smoke Test"
+      },
+      {
         "command": "mumps.sendRawDebugCommand",
         "title": "MUMPS: Send Raw Debug Command..."
+      },
+      {
+        "command": "mumps.openDirectDebugOutput",
+        "title": "MUMPS: Open Direct Debug Output"
+      },
+      {
+        "command": "mumps.copyLastDirectDebugOutput",
+        "title": "MUMPS: Copy Last Direct Debug Output"
+      },
+      {
+        "command": "mumps.clearDirectDebugOutput",
+        "title": "MUMPS: Clear Direct Debug Output"
       }
     ],
     "debuggers": [
@@ -322,6 +354,31 @@
         "when": "inDebugMode && debugType == mumps"
       },
       {
+        "command": "mumps.zprint",
+        "key": "ctrl+alt+shift+p",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.configureZstepLinePrinting",
+        "key": "ctrl+alt+shift+s",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.showZposition",
+        "key": "ctrl+alt+shift+z",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.directDebugSetup",
+        "key": "ctrl+alt+shift+d",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
+        "command": "mumps.directDebugSmokeTest",
+        "key": "ctrl+alt+shift+t",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
         "command": "mumps.insertPatchChangeBlockTemplate",
         "key": "ctrl+alt+p",
         "when": "editorLangId == mumps"
@@ -437,8 +494,96 @@
           "type": "boolean",
           "default": true,
           "description": "When a standards profile is active, warn on READ/KILL/SET/MERGE operations against ^% globals."
+        },
+        "mumps.debug.showOutputOnCommand": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the MUMPS Debug output channel whenever a direct debug command is sent."
+        },
+        "mumps.debug.directCommandTimeoutMs": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 1000,
+          "description": "Timeout in milliseconds while waiting for output from a direct MDEBUG command."
         }
       }
-    }
+    },
+    "menus": {
+      "debug/toolBar": [
+        {
+          "command": "mumps.directDebugSmokeTest",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@-1"
+        },
+        {
+          "command": "mumps.directDebugSetup",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@0"
+        },
+        {
+          "command": "mumps.zbreak",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@1"
+        },
+        {
+          "command": "mumps.zprintAtPosition",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@2"
+        },
+        {
+          "command": "mumps.zwrite",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@3"
+        },
+        {
+          "command": "mumps.zshow",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@4"
+        },
+        {
+          "command": "mumps.configureZstepLinePrinting",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@5"
+        },
+        {
+          "command": "mumps.showZposition",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@6"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "mumps.directDebugSmokeTest",
+          "when": "view == mumpsDirectDebug",
+          "group": "navigation@0"
+        },
+        {
+          "command": "mumps.openDirectDebugOutput",
+          "when": "view == mumpsDirectDebug",
+          "group": "navigation@1"
+        },
+        {
+          "command": "mumps.clearDirectDebugOutput",
+          "when": "view == mumpsDirectDebug",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "views": {
+      "debug": [
+        {
+          "id": "mumpsDirectDebug",
+          "name": "MUMPS Direct Debug",
+          "when": "inDebugMode && debugType == mumps"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "mumpsDirectDebug",
+        "contents": "Start a MUMPS debug session to use Xdebug-like Direct Debug controls.\n[Direct Debug Setup](command:mumps.directDebugSetup)\n[Smoke Test](command:mumps.directDebugSmokeTest)",
+        "when": "!inDebugMode"
+      }
+    ]
   }
 }

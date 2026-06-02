@@ -38,7 +38,7 @@ interface IVariables {
 	[varName: string]: string;
 }
 enum connectState {
-	disconnected, waitingforStart, waitingForVars, waitingForBreakpoints, waitingForSingleVar, waitingForSingleVarContent, waitingForErrorReport, waitingForHints
+	disconnected, waitingforStart, waitingForVars, waitingForBreakpoints, waitingForSingleVar, waitingForSingleVarContent, waitingForErrorReport, waitingForHints, waitingForDirectCommandOutput
 }
 
 export class MumpsConnect extends EventEmitter {
@@ -63,6 +63,8 @@ export class MumpsConnect extends EventEmitter {
 	private _logging = false;
 	private _singleVar = "";
 	private _singleVarContent = "";
+	private _directCommandOutput: string[];
+	private _directCommandTail: Promise<void>;
 	constructor() {
 		super();
 		this._commandQueue = [];
@@ -75,6 +77,8 @@ export class MumpsConnect extends EventEmitter {
 		this._errorLines = [];
 		this._singleVar = "";
 		this._singleVarContent = "";
+		this._directCommandOutput = [];
+		this._directCommandTail = Promise.resolve();
 		this._hints = [];
 		this._event.on('varsComplete', () => {
 			if (typeof (this._mVars["I"]) !== 'undefined') {
@@ -156,6 +160,11 @@ export class MumpsConnect extends EventEmitter {
 					this._hints = [];
 					break;
 				}
+				if (line === "***STARTDIRECT") {
+					this._connectState = connectState.waitingForDirectCommandOutput;
+					this._directCommandOutput = [];
+					break;
+				}
 				break;
 			}
 			case connectState.waitingForVars: {
@@ -205,6 +214,15 @@ export class MumpsConnect extends EventEmitter {
 					this._event.emit('SingleVarReceived', this._event, this._singleVar, this._singleVarContent);
 				} else {
 					this._singleVarContent += line;
+				}
+				break;
+			}
+			case connectState.waitingForDirectCommandOutput: {
+				if (line === "***ENDDIRECT") {
+					this._connectState = connectState.waitingforStart;
+					this._event.emit('DirectCommandReceived', this._event, this._directCommandOutput.join('\n'));
+				} else {
+					this._directCommandOutput.push(line);
 				}
 				break;
 			}
@@ -274,8 +292,58 @@ export class MumpsConnect extends EventEmitter {
 		this.writeln("CONTINUE");
 	}
 
-	public sendRawCommand(command: string): void {
-		this.writeln(command);
+	public async sendRawCommand(command: string, timeoutMs = 5000): Promise<string> {
+		const normalizedCommand = command.trim().toUpperCase();
+		if (normalizedCommand === "ZCONTINUE" || normalizedCommand === "ZC") {
+			this.continue();
+			return "MDEBUG continued execution.";
+		}
+		if (normalizedCommand === "ZSTEP" || normalizedCommand === "ZST" || normalizedCommand === "ZSTEP OVER") {
+			this.step("OVER");
+			return "MDEBUG stepped over.";
+		}
+		if (normalizedCommand === "ZSTEP INTO") {
+			this.step("INTO");
+			return "MDEBUG stepped into.";
+		}
+		if (normalizedCommand === "ZSTEP OUTOF") {
+			this.step("OUTOF");
+			return "MDEBUG stepped out.";
+		}
+		return this.enqueueDirectCommand(command, timeoutMs);
+	}
+
+	private enqueueDirectCommand(command: string, timeoutMs: number): Promise<string> {
+		const run = () => this.executeDirectCommand(command, timeoutMs);
+		const next = this._directCommandTail.then(run, run);
+		this._directCommandTail = next.then(() => undefined, () => undefined);
+		return next;
+	}
+
+	private executeDirectCommand(command: string, timeoutMs: number): Promise<string> {
+		return new Promise((resolve) => {
+			const safeTimeoutMs = Math.max(1000, timeoutMs || 5000);
+			const timeout = setTimeout(() => {
+				this._event.removeListener('DirectCommandReceived', directCommandReceived);
+				resolve(`MDEBUG accepted command, but no direct output was returned within ${safeTimeoutMs} ms.`);
+			}, safeTimeoutMs);
+			const directCommandReceived = (event: EventEmitter, directOutput: string) => {
+				clearTimeout(timeout);
+				event.removeListener('DirectCommandReceived', directCommandReceived);
+				resolve(this.normalizeDirectOutput(directOutput));
+			};
+			this._event.on('DirectCommandReceived', directCommandReceived);
+			this.writeln("DIRECT;" + command);
+		});
+	}
+
+	private normalizeDirectOutput(output: string): string {
+		const normalizedOutput = output
+			.split(/\r?\n/)
+			.map(line => line.trimEnd())
+			.join('\n')
+			.trim();
+		return normalizedOutput || "MDEBUG command completed with no output.";
 	}
 	public disconnect(): void {
 		this.writeln("RESET");
@@ -293,6 +361,7 @@ export class MumpsConnect extends EventEmitter {
 	private checkEvents(internals: IVariables): void {
 		const mumpsposition = internals["$ZPOSITION"];
 		const mumpsstatus = internals["$ZSTATUS"];
+		this.sendEvent('positionChanged', mumpsposition);
 		const parts = mumpsposition.split("^");
 		const position = parts[0];
 		const program = parts[1];

@@ -17,7 +17,7 @@ import CompletionItemProvider from './mumpsCompletionItemProvider';
 import expandCompress from './mumpsCompExp';
 import MumpsDiagnosticsProvider from './mumpsDiagnosticsProvider';
 import { insertPatchChangeBlockTemplate, insertRoutineHeaderTemplate } from './mumpsTemplateCommands';
-import { sendRawDebugCommand, zbreak, zcontinue, zprintAtPos, zshow, zstep, zstepInto, zstepOutOf, zwrite } from './mumpsDirectDebugCommands';
+import { clearDirectDebugOutput, configureZstepLinePrinting, copyLastDirectDebugOutput, directDebugSetup, directDebugSmokeTest, openDirectDebugOutput, registerDirectDebugControls, sendRawDebugCommand, showZposition, zbreak, zcontinue, zprint, zprintAtPos, zshow, zstep, zstepInto, zstepOutOf, zwrite } from './mumpsDirectDebugCommands';
 import fs = require('fs');
 let timeout: ReturnType<typeof setTimeout> | undefined;
 const entryRef: string | undefined = "";
@@ -36,6 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.subscriptions.push(vscode.languages.registerCompletionItemProvider(MUMPS_MODE, new CompletionItemProvider(dbFile)));
 	}
 	const wsState = context.workspaceState;
+	registerDirectDebugControls(context);
 	context.subscriptions.push(
 		vscode.commands.registerCommand("mumps.documentFunction", () => { MumpsDocumenter(); }),
 		vscode.commands.registerCommand("mumps.autoSpaceEnter", () => { autoSpaceEnter(); }),
@@ -50,9 +51,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('mumps.zshow', async () => { await zshow(); }),
 		vscode.commands.registerCommand('mumps.zbreak', async () => { await zbreak(); }),
 		vscode.commands.registerCommand('mumps.zprintAtPosition', async () => { await zprintAtPos(); }),
+		vscode.commands.registerCommand('mumps.zprint', async () => { await zprint(); }),
 		vscode.commands.registerCommand('mumps.zstepInto', async () => { await zstepInto(); }),
 		vscode.commands.registerCommand('mumps.zstepOutOf', async () => { await zstepOutOf(); }),
+		vscode.commands.registerCommand('mumps.configureZstepLinePrinting', async () => { await configureZstepLinePrinting(); }),
+		vscode.commands.registerCommand('mumps.directDebugSetup', async () => { await directDebugSetup(); }),
+		vscode.commands.registerCommand('mumps.directDebugSmokeTest', async () => { await directDebugSmokeTest(); }),
+		vscode.commands.registerCommand('mumps.showZposition', async () => { await showZposition(); }),
 		vscode.commands.registerCommand('mumps.sendRawDebugCommand', async () => { await sendRawDebugCommand(); }),
+		vscode.commands.registerCommand('mumps.openDirectDebugOutput', () => { openDirectDebugOutput(); }),
+		vscode.commands.registerCommand('mumps.copyLastDirectDebugOutput', async () => { await copyLastDirectDebugOutput(); }),
+		vscode.commands.registerCommand('mumps.clearDirectDebugOutput', () => { clearDirectDebugOutput(); }),
 		vscode.languages.registerHoverProvider(MUMPS_MODE, new MumpsHoverProvider()),
 		vscode.languages.registerDefinitionProvider(MUMPS_MODE, new MumpsDefinitionProvider()),
 		vscode.languages.registerEvaluatableExpressionProvider(MUMPS_MODE, new MumpsEvalutableExpressionProvider()),

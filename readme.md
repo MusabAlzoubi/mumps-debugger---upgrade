@@ -46,3 +46,5 @@ A possible `launch.json` could look like this:
 ## Development, Testing, and Publishing
 
 Arabic guide for publishing this repository as a VS Code extension and testing the current updates: [VS_CODE_EXTENSION_PUBLISH_AND_TEST_AR.md](./VS_CODE_EXTENSION_PUBLISH_AND_TEST_AR.md)
+Extension testing checklist and step-by-step Arabic guide: [VS_CODE_EXTENSION_TESTING_STEPS_AR.md](./VS_CODE_EXTENSION_TESTING_STEPS_AR.md)
+Direct Debug plan for a VS Code workflow similar to PHP Xdebug, focused on `ZBREAK`, `ZCONTINUE`, `ZWRITE`, `ZPRINT`, `ZSHOW`, `ZSTEP`, `$ZPOSITION`, and `$ZSTEP`: [XDEBUG_LIKE_DIRECT_DEBUG_PLAN_AR.md](./XDEBUG_LIKE_DIRECT_DEBUG_PLAN_AR.md)

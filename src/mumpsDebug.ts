@@ -15,6 +15,8 @@ import { MumpsConnect, MumpsBreakpoint } from './mumpsConnect';
 import * as vscode from 'vscode';
 import { readFileSync } from 'fs';
 import * as getIpAddress from 'local-ipv4-address';
+import * as portfinder from 'portfinder';
+import { updateDirectDebugPosition } from './mumpsDirectDebugCommands';
 const MUMPSDIAGNOSTICS = vscode.languages.createDiagnosticCollection("mumps");
 /**
  * This interface describes the mumps-debug specific launch attributes
@@ -95,6 +97,9 @@ export default class MumpsDebugSession extends DebugSession {
 		this._mconnect.on('breakpointValidated', (bp: MumpsBreakpoint) => {
 			this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
 		});
+		this._mconnect.on('positionChanged', (position: string) => {
+			updateDirectDebugPosition(position);
+		});
 
 		this._mconnect.on('end', () => {
 			this.sendEvent(new TerminatedEvent());
@@ -152,36 +157,34 @@ export default class MumpsDebugSession extends DebugSession {
 	}
 
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
-		var newPort = require('portfinder');
-		newPort.setBasePort(3000);    // default: 8000
-		newPort.setHighestPort(3333);
-		 this._mdebugPort = await newPort.getPortPromise();
+		portfinder.setBasePort(3000);    // default: 8000
+		portfinder.setHighestPort(3333);
+		this._mdebugPort = await portfinder.getPortPromise();
 
-
-			let _mdebugTerminal = vscode.window.createTerminal({
-				name: `Debug`,
-				color: new vscode.ThemeColor('terminal.ansiRed'),
-				iconPath: { id: 'bug' },
-				location: 1
-			});
-			const parentTerminal = _mdebugTerminal
-			parentTerminal.sendText('GTM');
-			parentTerminal.sendText('S emptPort='+this._mdebugPort);
-			parentTerminal.sendText('W "your port is"');
-			parentTerminal.sendText('W emptPort');
-			(await parentTerminal).sendText('DO ^MDEBUG');
-			await parentTerminal.processId
-			this._debugTerminal =  parentTerminal;
-			vscode.window.showInformationMessage("please wait till Debugging Server is Running");
-			await   new Promise<void>((resolve) => {
-				setTimeout(() => {
-				  console.log(`Waited ${10} seconds`);
-				  // Code to be executed after the specified time
-				  resolve();
-				}, 7 * 1000); // Multiply by 1000 to convert seconds to milliseconds
-			  });;
-			  vscode.window.setStatusBarMessage('');
-			parentTerminal.hide()
+		const mdebugTerminal = vscode.window.createTerminal({
+			name: `Debug`,
+			color: new vscode.ThemeColor('terminal.ansiRed'),
+			iconPath: { id: 'bug' },
+			location: 1
+		});
+		const parentTerminal = mdebugTerminal;
+		parentTerminal.sendText('GTM');
+		parentTerminal.sendText('S emptPort=' + this._mdebugPort);
+		parentTerminal.sendText('W "your port is"');
+		parentTerminal.sendText('W emptPort');
+		parentTerminal.sendText('DO ^MDEBUG');
+		await parentTerminal.processId;
+		this._debugTerminal = parentTerminal;
+		vscode.window.showInformationMessage("please wait till Debugging Server is Running");
+		await new Promise<void>((resolve) => {
+			setTimeout(() => {
+				console.log(`Waited ${10} seconds`);
+				// Code to be executed after the specified time
+				resolve();
+			}, 7 * 1000); // Multiply by 1000 to convert seconds to milliseconds
+		});
+		vscode.window.setStatusBarMessage('');
+		parentTerminal.hide();
 		// make sure to 'Stop' the buffered logging if 'trace' is not set
 		//logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
@@ -202,9 +205,14 @@ export default class MumpsDebugSession extends DebugSession {
 	}
 
 
-	protected customRequest(command: string, response: DebugProtocol.Response, args: { command?: string }): void {
+	protected async customRequest(command: string, response: DebugProtocol.Response, args: { command?: string; timeoutMs?: number }): Promise<void> {
 		if (command === 'mumps.rawCommand' && args?.command) {
-			this._mconnect.sendRawCommand(args.command);
+			const output = await this._mconnect.sendRawCommand(args.command, args.timeoutMs);
+			(response as DebugProtocol.Response & { body?: { accepted: boolean; command: string; message: string } }).body = {
+				accepted: true,
+				command: args.command,
+				message: output
+			};
 			this.sendResponse(response);
 			return;
 		}
@@ -413,16 +421,16 @@ export default class MumpsDebugSession extends DebugSession {
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse): void {
 
 		this._mconnect.disconnect();
-		let _mdebugTerminal = vscode.window.createTerminal({
+		const mdebugTerminal = vscode.window.createTerminal({
 			name: `Debug`,
 			color: new vscode.ThemeColor('terminal.ansiRed'),
 			iconPath: { id: 'bug' },
 			location: 1
 		});
 
-		_mdebugTerminal.sendText('fuser -n tcp -k '+this._mdebugPort);
-		this._debugTerminal.dispose()
-		 _mdebugTerminal.dispose();
+		mdebugTerminal.sendText('fuser -n tcp -k ' + this._mdebugPort);
+		this._debugTerminal.dispose();
+		mdebugTerminal.dispose();
 		this._mconnect.disconnect();
 		this.sendResponse(response);
 	}
