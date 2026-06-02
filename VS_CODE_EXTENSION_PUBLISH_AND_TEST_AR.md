@@ -4,6 +4,8 @@
 
 > لخطة تفصيلية تجعل أوامر Direct Debug (`ZBREAK`, `ZSTEP`, `ZWRITE`, `$ZPOSITION`, `$ZSTEP`) أقرب لتجربة Xdebug في PHP، راجع: [XDEBUG_LIKE_DIRECT_DEBUG_PLAN_AR.md](./XDEBUG_LIKE_DIRECT_DEBUG_PLAN_AR.md).
 
+> للدليل العملي التفصيلي لاختبار وتجريب الإضافة بعد كل تعديل، راجع: [VS_CODE_EXTENSION_TESTING_STEPS_AR.md](./VS_CODE_EXTENSION_TESTING_STEPS_AR.md).
+
 ---
 
 ## 1) قبل النشر باسمك
@@ -312,14 +314,14 @@ npm run publish
 
 | المحور | الإنجاز | المتبقي |
 |---|---:|---|
-| التوثيق والمعمارية | 80% | مراجعة نهائية وربط docs في README الرئيسي |
+| التوثيق والمعمارية | 88% | مراجعة نهائية + إبقاء دليل الاختبار محدثًا بعد كل تعديل |
 | Standards Diagnostics | 45% | قواعد أكثر + quick fixes + tests |
 | Templates | 60% | قوالب RPC/FileMan/Entry Point + إعدادات company/version |
 | Direct Debug Commands | 93% | تشغيل لوحة MUMPS Direct Debug وزر TEST على MDEBUG الحقيقي + polish لتنسيق output |
 | Attach Mode | 35% | اختبار فعلي مع listener + تحسين lifecycle |
 | Packaging/Marketplace | 40% | تغيير الهوية + LICENSE/NOTICE + نشر VSIX تجريبي |
 
-**النسبة الإجمالية التقريبية الآن: 68% من MVP داخلي قابل للاختبار بعد إضافة لوحة MUMPS Direct Debug وأدوات output داخل Run and Debug وزر Smoke Test لأوامر Direct Debug داخل VS Code.**
+**النسبة الإجمالية التقريبية الآن: 69% من MVP داخلي قابل للاختبار بعد إضافة دليل اختبار تفصيلي للإضافة وربطه بالـ README ودليل النشر.**
 
 للوصول إلى مرحلة اختبار داخلية جيدة نحتاج تقريبًا:
 

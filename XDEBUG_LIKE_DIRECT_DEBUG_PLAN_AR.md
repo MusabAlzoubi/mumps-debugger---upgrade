@@ -224,7 +224,7 @@ ZBREAK TEST+3^KJOTEST
 | Output Channel | 93% | تمت إضافة قناة `MUMPS Debug` مع تنسيق نتائج مستقل لكل أمر والتقاط نتائج MDEBUG الفعلية عبر `DIRECT` markers، وأوامر فتح/نسخ آخر نتيجة/تنظيف القناة من اللوحة، والمتبقي smoke test وpolish. |
 | تجربة شبيهة Xdebug | 90% | تمت إضافة Status Bar controls وDebug Toolbar menu entries ولوحة Run and Debug جانبية `MUMPS Direct Debug` وزر setup `MDBG` وزر smoke test `TEST` وأدوات output، والمتبقي اختبار فعلي وتحسين polish. |
 | MDEBUG protocol للأوامر الخام | 85% | تمت إضافة أمر `DIRECT` في MDEBUG والتقاط output بين markers مع queue وtimeout قابل للإعداد، والمتبقي hardening بعد الاختبار الفعلي. |
-| التوثيق والاختبارات | 60% | تمت إضافة زر smoke test داخل VS Code، لكن تشغيله وتوثيق نتائجه على GT.M/MDEBUG الحقيقي لا يزال مطلوبًا. |
+| التوثيق والاختبارات | 68% | تمت إضافة زر smoke test داخل VS Code ودليل اختبار تفصيلي مستقل، لكن تشغيله وتوثيق نتائجه على GT.M/MDEBUG الحقيقي لا يزال مطلوبًا. |
 
 **النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **90%** بعد إضافة لوحة `MUMPS Direct Debug` داخل Run and Debug إلى جانب زر smoke test `TEST` وزر setup `MDBG` وأدوات output والـ queue/timeout وتنسيق النتائج.
 
@@ -391,3 +391,18 @@ ZBREAK TEST+3^KJOTEST
 **النسبة بعد هذا التنفيذ:** 90% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
 
 **المتبقي الأقرب:** تشغيل اللوحة كاملة على GT.M/MDEBUG حقيقي، ثم تحسين عرض النتائج بناءً على output الفعلي.
+
+
+## 19) تحديث توثيق الاختبار بعد كل تعديل
+
+تمت إضافة دليل عملي مستقل باسم `VS_CODE_EXTENSION_TESTING_STEPS_AR.md` ليكون مرجع الاختبار بعد كل تعديل على الإضافة:
+
+- يشرح اختبار Extension Development Host وVSIX.
+- يغطي اختبار القوالب والـ diagnostics بدون MDEBUG.
+- يغطي اختبار Direct Debug خطوة بخطوة: setup، smoke test، step controls، `ZBREAK`, `ZPRINT`, `ZWRITE`, `ZSHOW`, `$ZPOSITION`, وأدوات output.
+- يحتوي checklist قبل PR وجدول آخر نتائج اختبار موثقة.
+- القاعدة الجديدة: عند كل تعديل على الإضافة يجب تحديث هذا الدليل إذا تغيرت خطوات الاختبار أو النتائج المتوقعة.
+
+**النسبة بعد هذا التنفيذ:** التوثيق والاختبارات ارتفعت إلى 68% تقريبًا، والـ MVP الداخلي العام إلى 69% تقريبًا.
+
+**المتبقي الأقرب:** ملء جدول نتائج الاختبار بنتائج تشغيل فعلية على GT.M/MDEBUG وبيئة VS Code نظيفة.
