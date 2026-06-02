@@ -129,6 +129,10 @@
         "title": "MUMPS: Direct Debug Setup"
       },
       {
+        "command": "mumps.directDebugSmokeTest",
+        "title": "MUMPS: Direct Debug Smoke Test"
+      },
+      {
         "command": "mumps.sendRawDebugCommand",
         "title": "MUMPS: Send Raw Debug Command..."
       }
@@ -358,6 +362,11 @@
         "when": "inDebugMode && debugType == mumps"
       },
       {
+        "command": "mumps.directDebugSmokeTest",
+        "key": "ctrl+alt+shift+t",
+        "when": "inDebugMode && debugType == mumps"
+      },
+      {
         "command": "mumps.insertPatchChangeBlockTemplate",
         "key": "ctrl+alt+p",
         "when": "editorLangId == mumps"
@@ -489,6 +498,11 @@
     },
     "menus": {
       "debug/toolBar": [
+        {
+          "command": "mumps.directDebugSmokeTest",
+          "when": "inDebugMode && debugType == mumps",
+          "group": "mumps@-1"
+        },
         {
           "command": "mumps.directDebugSetup",
           "when": "inDebugMode && debugType == mumps",

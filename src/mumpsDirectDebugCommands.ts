@@ -10,6 +10,12 @@ interface RawCommandResponse {
 	message?: string;
 }
 
+interface SmokeStep {
+	label: string;
+	command: string;
+	expected: string;
+}
+
 interface DirectDebugControl {
 	text: string;
 	tooltip: string;
@@ -19,6 +25,7 @@ interface DirectDebugControl {
 }
 
 const directDebugControls: DirectDebugControl[] = [
+	{ text: '$(debug-console) TEST', tooltip: 'MUMPS: Direct Debug Smoke Test', command: 'mumps.directDebugSmokeTest', priority: 202 },
 	{ text: '$(debug-alt) MDBG', tooltip: 'MUMPS: Direct Debug Setup ($ZSTEP + $ZPOSITION + current line)', command: 'mumps.directDebugSetup', priority: 201 },
 	{ text: '$(debug-continue) ZC', tooltip: 'MUMPS: ZCONTINUE', command: 'mumps.zcontinue', priority: 200 },
 	{ text: '$(debug-step-over) ZST', tooltip: 'MUMPS: ZSTEP', command: 'mumps.zstep', priority: 199 },
@@ -54,7 +61,7 @@ function directCommandTimeoutMs(): number {
 
 function appendCommandResult(command: string, label: string | undefined, message: string): void {
 	const normalizedMessage = (message || 'MDEBUG command completed with no output.').trim();
-	const isError = normalizedMessage.includes('***DIRECTERR');
+	const isError = isDirectCommandError(normalizedMessage);
 	appendOutput(`--- ${isError ? 'ERROR: ' : ''}${label || 'MUMPS Direct Command'} result ---`);
 	appendOutput(`Command: ${command}`);
 	appendOutput(normalizedMessage);
@@ -62,6 +69,10 @@ function appendCommandResult(command: string, label: string | undefined, message
 	if (isError) {
 		vscode.window.showWarningMessage(`MUMPS direct command returned an error. See the MUMPS Debug output channel.`);
 	}
+}
+
+function isDirectCommandError(message: string): boolean {
+	return message.includes('***DIRECTERR') || message.includes('no direct output was returned');
 }
 
 function isLikelyEntryReference(target: string): boolean {
@@ -185,6 +196,31 @@ export async function directDebugSetup(): Promise<void> {
 	await sendDebugCommand('WRITE $ZPOSITION', 'Show $ZPOSITION');
 	await sendDebugCommand('ZPRINT @$ZPOSITION', 'Print current line');
 	appendOutput('=== End MUMPS Direct Debug Setup ===');
+}
+
+export async function directDebugSmokeTest(): Promise<void> {
+	const steps: SmokeStep[] = [
+		{ label: 'Smoke: Show $ZPOSITION', command: 'WRITE $ZPOSITION', expected: '$ZPOSITION should return the current M execution reference.' },
+		{ label: 'Smoke: Print current line', command: 'ZPRINT @$ZPOSITION', expected: 'ZPRINT should return the current M source line.' },
+		{ label: 'Smoke: Inspect variables', command: 'ZWRITE', expected: 'ZWRITE should return visible local variables or an empty result.' },
+		{ label: 'Smoke: Show stack/environment', command: 'ZSHOW', expected: 'ZSHOW should return GT.M environment/stack information.' }
+	];
+	appendOutput('=== MUMPS Direct Debug Smoke Test ===', true);
+	let failures = 0;
+	for (const step of steps) {
+		appendOutput(`Expected: ${step.expected}`);
+		const response = await sendDebugCommand(step.command, step.label);
+		if (!response?.message || isDirectCommandError(response.message)) {
+			failures++;
+		}
+	}
+	appendOutput(`Smoke test completed: ${steps.length - failures}/${steps.length} commands returned output without direct-command errors.`);
+	appendOutput('=== End MUMPS Direct Debug Smoke Test ===');
+	if (failures > 0) {
+		vscode.window.showWarningMessage(`MUMPS Direct Debug smoke test completed with ${failures} warning(s). See MUMPS Debug output.`);
+	} else {
+		vscode.window.showInformationMessage('MUMPS Direct Debug smoke test completed successfully.');
+	}
 }
 
 export async function showZposition(): Promise<void> {

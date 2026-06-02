@@ -207,11 +207,11 @@ ZBREAK TEST+3^KJOTEST
 - [ ] إضافة دليل استخدام Direct Debug شبيه Xdebug داخل README أو ملف مستقل.
 - [ ] إضافة سيناريو اختبار: `ZBREAK` ثم `$ZSTEP` ثم `DO TAG^ROUTINE` ثم `ZSTEP`.
 - [ ] إضافة fixtures أو mock tests للأوامر التي لا تحتاج GT.M.
-- [ ] إضافة smoke test يدوي على GT.M/MDEBUG حقيقي. تم تسهيله بزر `MDBG` الذي يضبط `$ZSTEP` ويعرض `$ZPOSITION` ويطبع السطر الحالي دفعة واحدة.
+- [x] إضافة smoke test شبه يدوي من داخل VS Code عبر زر `TEST` يجرب `$ZPOSITION`, `ZPRINT`, `ZWRITE`, و`ZSHOW` ويعرض النتائج في Output Channel. يبقى تشغيله على GT.M/MDEBUG حقيقي مطلوبًا.
 - [ ] توثيق الفرق بين MDEBUG launch وDirect Mode commands.
 - [ ] توثيق known limitations.
 
-**نسبة الإنجاز الحالية لهذه المرحلة:** 30% لأن الدوكس العامة موجودة، لكن دليل Direct Debug الشبيه بـ Xdebug غير مكتمل قبل هذه الوثيقة.
+**نسبة الإنجاز الحالية لهذه المرحلة:** 55% بعد إضافة زر smoke test داخل VS Code وتوثيق السيناريو. المتبقي تشغيله على GT.M/MDEBUG حقيقي وتسجيل النتائج.
 
 ---
 
@@ -224,9 +224,9 @@ ZBREAK TEST+3^KJOTEST
 | Output Channel | 90% | تمت إضافة قناة `MUMPS Debug` مع تنسيق نتائج مستقل لكل أمر والتقاط نتائج MDEBUG الفعلية عبر `DIRECT` markers، والمتبقي smoke test وpolish. |
 | تجربة شبيهة Xdebug | 83% | تمت إضافة Status Bar controls وDebug Toolbar menu entries وزر setup واحد `MDBG` والتقاط output وتحديث `$ZPOS`، والمتبقي اختبار فعلي وتحسين polish. |
 | MDEBUG protocol للأوامر الخام | 85% | تمت إضافة أمر `DIRECT` في MDEBUG والتقاط output بين markers مع queue وtimeout قابل للإعداد، والمتبقي hardening بعد الاختبار الفعلي. |
-| التوثيق والاختبارات | 45% | تم تحديث الخطة لتتبع التنفيذ، لكن smoke test على GT.M/MDEBUG لا يزال مطلوبًا. |
+| التوثيق والاختبارات | 60% | تمت إضافة زر smoke test داخل VS Code، لكن تشغيله وتوثيق نتائجه على GT.M/MDEBUG الحقيقي لا يزال مطلوبًا. |
 
-**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **83%** بعد إضافة زر setup واحد `MDBG` فوق queue/timeout وتنسيق نتائج Output Channel.
+**النسبة الإجمالية الحالية لتنفيذ تجربة Direct Debug شبيهة Xdebug:** حوالي **86%** بعد إضافة زر smoke test `TEST` إلى جانب زر setup `MDBG` والـ queue/timeout وتنسيق النتائج.
 
 بعد smoke test على GT.M/MDEBUG وتحسين تنسيق النتائج يمكن أن ترتفع النسبة إلى حوالي **85%** وتصبح التجربة مناسبة لاختبار داخلي أوسع.
 
@@ -347,3 +347,18 @@ ZBREAK TEST+3^KJOTEST
 **النسبة بعد هذا التنفيذ:** 83% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
 
 **المتبقي الأقرب:** smoke test فعلي على GT.M/MDEBUG وتجميل عرض النتائج بعد رؤية output حقيقي من بيئة GT.M.
+
+---
+
+## 16) تحديث تنفيذ إضافي لاختبار Smoke من داخل VS Code
+
+تمت إضافة زر/أمر smoke test لتقليل الحاجة لاختبارات يدوية مشتتة:
+
+- زر Status Bar باسم `TEST` يظهر أثناء جلسة MUMPS debug.
+- أمر `MUMPS: Direct Debug Smoke Test` يجرب الأوامر: `WRITE $ZPOSITION`, `ZPRINT @$ZPOSITION`, `ZWRITE`, و`ZSHOW`.
+- يعرض الاختبار المتوقع لكل خطوة، ثم النتيجة الفعلية في `MUMPS Debug` Output Channel، ويعطي ملخص نجاح/تحذير في النهاية.
+- تمت إضافة keybinding اختياري `ctrl+alt+shift+t` ومساهمة في `debug/toolBar`.
+
+**النسبة بعد هذا التنفيذ:** 86% تقريبًا من تجربة Direct Debug الشبيهة بـ Xdebug.
+
+**المتبقي الأقرب:** تشغيل زر `TEST` على بيئة GT.M/MDEBUG حقيقية وتوثيق أي فروقات في output.

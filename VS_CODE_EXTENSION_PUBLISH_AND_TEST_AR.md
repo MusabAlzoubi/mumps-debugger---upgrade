@@ -304,16 +304,16 @@ npm run publish
 | التوثيق والمعمارية | 80% | مراجعة نهائية وربط docs في README الرئيسي |
 | Standards Diagnostics | 45% | قواعد أكثر + quick fixes + tests |
 | Templates | 60% | قوالب RPC/FileMan/Entry Point + إعدادات company/version |
-| Direct Debug Commands | 88% | smoke test مع MDEBUG + polish لتنسيق output |
+| Direct Debug Commands | 90% | تشغيل زر TEST على MDEBUG الحقيقي + polish لتنسيق output |
 | Attach Mode | 35% | اختبار فعلي مع listener + تحسين lifecycle |
 | Packaging/Marketplace | 40% | تغيير الهوية + LICENSE/NOTICE + نشر VSIX تجريبي |
 
-**النسبة الإجمالية التقريبية الآن: 65% من MVP داخلي قابل للاختبار بعد إضافة زر Direct Debug Setup لتجهيز `$ZSTEP` و`$ZPOSITION` بسرعة.**
+**النسبة الإجمالية التقريبية الآن: 66% من MVP داخلي قابل للاختبار بعد إضافة زر Smoke Test لأوامر Direct Debug داخل VS Code.**
 
 للوصول إلى مرحلة اختبار داخلية جيدة نحتاج تقريبًا:
 
 1. المحافظة على نظافة lint بعد تنظيف مشاكل `src/mumpsDebug.ts` القديمة.
-2. تشغيل smoke test فعلي لأوامر Direct Debug على GT.M/MDEBUG ثم polish لتنسيق output.
+2. تشغيل زر `TEST` على GT.M/MDEBUG حقيقي ثم polish لتنسيق output حسب النتائج.
 3. إضافة test fixtures لقواعد standards.
 4. اختبار attach على بيئة GT.M/MDEBUG حقيقية.
 5. إعداد نسخة VSIX باسم جديد وتجربتها على VS Code نظيف.
